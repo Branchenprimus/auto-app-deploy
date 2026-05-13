@@ -1,0 +1,21 @@
+name: flashcards
+image:
+  repository: ghcr.io/branchenprimus/flashcards
+  tag: v0.1.0
+  pullPolicy: IfNotPresent
+container:
+  port: 80
+route:
+  host: flashcards.darwin-labs.org
+  path: /
+access:
+  enabled: true
+resources:
+  requests:
+    cpu: 25m
+    memory: 32Mi
+  limits:
+    cpu: 250m
+    memory: 128Mi
+env: []
+namespace: apps
