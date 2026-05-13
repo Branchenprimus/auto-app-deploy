@@ -50,6 +50,20 @@ entry_exists() {
   keepassxc-cli show "$db_path" "$entry" >/dev/null 2>&1
 }
 
+print_token_instructions() {
+  cat <<'EOF'
+
+Create a GitHub fine-grained personal access token:
+
+1. Open: https://github.com/settings/personal-access-tokens/new
+2. Repository access: only Branchenprimus/auto-app-deploy
+3. Repository permissions: Contents -> Write
+4. Generate the token.
+5. Re-run this script and paste the token only when KeePassXC asks for the entry password/token.
+
+EOF
+}
+
 main() {
   need_cmd keepassxc-cli
 
@@ -63,6 +77,11 @@ main() {
 
   printf 'KeePassXC entry for GITOPS_TOKEN: %s\n' "$entry"
   printf 'Do not paste the GitHub token until KeePassXC asks for the entry password/token.\n'
+
+  if ! prompt_yes_no 'Do you already have the GitOps GitHub token?' 'y'; then
+    print_token_instructions
+    exit 0
+  fi
 
   mkdir -p "$(dirname "$db_path")"
 

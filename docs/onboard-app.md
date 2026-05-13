@@ -26,6 +26,7 @@ Entry: GitHub/GITOPS_TOKEN
 ```
 
 Das Setup fragt nicht nach dem Entry-Pfad. Den GitHub-Token erst einfuegen, wenn KeePassXC nach dem Entry-Passwort/Token fragt.
+Wenn noch kein Token existiert, im Setup `n` waehlen. Das Script zeigt dann die noetigen GitHub-Berechtigungen.
 
 Start:
 
