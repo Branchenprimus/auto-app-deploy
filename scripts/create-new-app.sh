@@ -329,7 +329,9 @@ main() {
   printf 'Reading GITOPS_TOKEN from KeePassXC entry: %s\n' "$KEEPASS_ENTRY"
   printf 'KeePassXC may ask for the database password now.\n'
   local gitops_token
-  gitops_token="$(get_keepass_password "$KEEPASS_DB" "$KEEPASS_ENTRY" "$KEEPASS_KEY_FILE")"
+  if ! gitops_token="$(get_keepass_password "$KEEPASS_DB" "$KEEPASS_ENTRY" "$KEEPASS_KEY_FILE")"; then
+    die "Could not read KeePassXC entry '$KEEPASS_ENTRY'. Run: $PLATFORM_DIR/scripts/setup-gitops-token-store.sh"
+  fi
   [[ -n "$gitops_token" ]] || die "KeePassXC entry returned an empty password."
 
   printf 'Setting GitHub Actions secret GITOPS_TOKEN on %s.\n' "$repo"

@@ -43,6 +43,13 @@ prompt_yes_no() {
   esac
 }
 
+entry_exists() {
+  local db_path="$1"
+  local entry="$2"
+
+  keepassxc-cli show "$db_path" "$entry" >/dev/null 2>&1
+}
+
 main() {
   need_cmd keepassxc-cli
 
@@ -66,10 +73,12 @@ main() {
 
   if [[ "$group" != "$entry" ]]; then
     printf 'Ensuring KeePassXC group exists: %s\n' "$group"
-    keepassxc-cli mkdir "$db_path" "$group" >/dev/null 2>&1 || true
+    if ! keepassxc-cli mkdir "$db_path" "$group"; then
+      printf 'Group may already exist: %s\n' "$group"
+    fi
   fi
 
-  if keepassxc-cli show -q "$db_path" "$entry" >/dev/null 2>&1; then
+  if entry_exists "$db_path" "$entry"; then
     if prompt_yes_no 'Entry exists. Replace its password/token?' 'y'; then
       printf 'KeePassXC will ask for the database password and then the GitOps token.\n'
       keepassxc-cli edit -p "$db_path" "$entry"
@@ -78,6 +87,11 @@ main() {
     printf 'Adding KeePassXC entry: %s\n' "$entry"
     printf 'KeePassXC will ask for the database password and then the GitOps token.\n'
     keepassxc-cli add -p "$db_path" "$entry"
+  fi
+
+  printf 'Verifying KeePassXC entry exists: %s\n' "$entry"
+  if ! entry_exists "$db_path" "$entry"; then
+    die "Could not verify KeePassXC entry. Open the database and ensure the entry path is exactly: $entry"
   fi
 
   printf '\nDone. create-new-app.sh will use:\n'
