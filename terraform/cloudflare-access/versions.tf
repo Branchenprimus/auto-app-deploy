@@ -1,23 +1,20 @@
 terraform {
   required_version = ">= 1.6.0"
 
+  cloud {
+    organization = "rpi-cf-app-of-apps"
+
+    workspaces {
+      name = "cloudflare-access"
+    }
+  }
+
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
       version = "~> 5.19"
     }
   }
-
-  # Auto-apply from GitHub Actions needs persistent state.
-  # Uncomment and configure this block before enabling the workflow.
-  #
-  # cloud {
-  #   organization = "your-terraform-cloud-org"
-  #
-  #   workspaces {
-  #     name = "auto-app-deploy-cloudflare-access"
-  #   }
-  # }
 }
 
 provider "cloudflare" {

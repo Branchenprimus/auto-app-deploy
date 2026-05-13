@@ -1,9 +1,9 @@
 locals {
-  app_files = fileset("${path.module}/../../apps", "*.yaml")
+  app_files = fileset("${path.module}/apps", "*.yaml")
 
   apps = {
     for file_name in local.app_files :
-    trimsuffix(file_name, ".yaml") => yamldecode(file("${path.module}/../../apps/${file_name}"))
+    trimsuffix(file_name, ".yaml") => yamldecode(file("${path.module}/apps/${file_name}"))
   }
 
   protected_apps = {
