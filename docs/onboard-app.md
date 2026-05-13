@@ -46,6 +46,8 @@ Wenn der Ordner bereits ein Git-Repo mit GitHub-`origin` ist, verwendet das Scri
 
 Danach legt es `app.yaml` und den Release-Workflow an, erstellt das GitHub-Repo, setzt `GITOPS_TOKEN` und pusht den Branch.
 
+Beim Lesen des Tokens fragt KeePassXC nach dem Datenbank-Passwort. Die Eingabe ist absichtlich nicht sichtbar.
+
 ## Manuell
 
 ## 1. App containerfaehig machen

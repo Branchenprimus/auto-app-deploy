@@ -142,7 +142,7 @@ get_keepass_password() {
     args+=(--key-file "$key_file")
   fi
 
-  keepassxc-cli show -q -s -a Password "${args[@]}" "$db_path" "$entry"
+  keepassxc-cli show -s -a Password "${args[@]}" "$db_path" "$entry"
 }
 
 github_repo_from_origin() {
@@ -327,10 +327,12 @@ main() {
   ensure_repo "$repo" "$VISIBILITY_FLAG"
 
   printf 'Reading GITOPS_TOKEN from KeePassXC entry: %s\n' "$KEEPASS_ENTRY"
+  printf 'KeePassXC may ask for the database password now.\n'
   local gitops_token
   gitops_token="$(get_keepass_password "$KEEPASS_DB" "$KEEPASS_ENTRY" "$KEEPASS_KEY_FILE")"
   [[ -n "$gitops_token" ]] || die "KeePassXC entry returned an empty password."
 
+  printf 'Setting GitHub Actions secret GITOPS_TOKEN on %s.\n' "$repo"
   printf '%s' "$gitops_token" | gh secret set GITOPS_TOKEN --repo "$repo"
   unset gitops_token
 
