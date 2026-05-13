@@ -2,7 +2,7 @@
 set -euo pipefail
 
 DEFAULT_KEEPASS_DB="${HOME}/.config/auto-app-deploy/secrets.kdbx"
-DEFAULT_KEEPASS_ENTRY="GitHub/GITOPS_TOKEN"
+DEFAULT_KEEPASS_ENTRY="GITOPS_TOKEN"
 
 die() {
   printf 'Error: %s\n' "$*" >&2
@@ -45,9 +45,9 @@ prompt_yes_no() {
 
 entry_exists() {
   local db_path="$1"
-  local entry="$2"
+  local title="$2"
 
-  keepassxc-cli show "$db_path" "$entry" >/dev/null 2>&1
+  keepassxc-cli show "$db_path" "$title" >/dev/null 2>&1
 }
 
 print_token_instructions() {
@@ -69,19 +69,20 @@ main() {
 
   local db_path
   local entry
-  local group
 
   db_path="$(prompt 'KeePassXC database path' "$DEFAULT_KEEPASS_DB")"
   entry="${AUTO_APP_DEPLOY_KEEPASS_ENTRY:-$DEFAULT_KEEPASS_ENTRY}"
-  group="${entry%/*}"
 
   printf 'KeePassXC entry for GITOPS_TOKEN: %s\n' "$entry"
-  printf 'Do not paste the GitHub token until KeePassXC asks for the entry password/token.\n'
 
   if ! prompt_yes_no 'Do you already have the GitOps GitHub token?' 'y'; then
     print_token_instructions
     exit 0
   fi
+
+  printf 'Process:\n'
+  printf '1. Unlock the KeePassXC database when asked.\n'
+  printf '2. Paste the GitOps token when KeePassXC asks for the new entry password.\n'
 
   mkdir -p "$(dirname "$db_path")"
 
@@ -91,13 +92,6 @@ main() {
     keepassxc-cli db-create -p "$db_path"
   else
     printf 'Using existing KeePassXC database: %s\n' "$db_path"
-  fi
-
-  if [[ "$group" != "$entry" ]]; then
-    printf 'Ensuring KeePassXC group exists: %s\n' "$group"
-    if ! keepassxc-cli mkdir "$db_path" "$group"; then
-      printf 'Group may already exist: %s\n' "$group"
-    fi
   fi
 
   if entry_exists "$db_path" "$entry"; then

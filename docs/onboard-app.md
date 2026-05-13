@@ -22,7 +22,7 @@ Standard:
 
 ```text
 DB:    ~/.config/auto-app-deploy/secrets.kdbx
-Entry: GitHub/GITOPS_TOKEN
+Entry: GITOPS_TOKEN
 ```
 
 Das Setup fragt nicht nach dem Entry-Pfad. Den GitHub-Token erst einfuegen, wenn KeePassXC nach dem Entry-Passwort/Token fragt.

@@ -8,7 +8,7 @@ DEFAULT_OWNER="Branchenprimus"
 DEFAULT_DOMAIN="darwin-labs.org"
 DEFAULT_GITOPS_REPO="Branchenprimus/auto-app-deploy"
 DEFAULT_GITOPS_BRANCH="main"
-DEFAULT_KEEPASS_ENTRY="GitHub/GITOPS_TOKEN"
+DEFAULT_KEEPASS_ENTRY="GITOPS_TOKEN"
 DEFAULT_PROJECTS_DIR="/home/jan/projects"
 
 # Adjust these defaults if your KeePassXC database or token entry lives elsewhere.
