@@ -11,7 +11,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  GITOPS_REPO: branchenprimus/pi-gitops
+  GITOPS_REPO: Branchenprimus/auto-app-deploy
   GITOPS_BRANCH: main
 
 jobs:

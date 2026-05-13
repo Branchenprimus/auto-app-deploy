@@ -9,7 +9,7 @@ spec:
     - missingkey=error
   generators:
     - git:
-        repoURL: https://github.com/branchenprimus/pi-gitops.git
+        repoURL: https://github.com/Branchenprimus/auto-app-deploy
         revision: main
         files:
           - path: apps/*.yaml
@@ -19,7 +19,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/branchenprimus/pi-gitops.git
+        repoURL: https://github.com/Branchenprimus/auto-app-deploy
         targetRevision: main
         path: chart/single-container-webapp
         helm:
