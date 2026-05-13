@@ -1,88 +1,112 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-KEEPASS_DB="${AUTO_APP_DEPLOY_KEEPASS_DB:-${HOME}/.config/auto-app-deploy/secrets.kdbx}"
-KEEPASS_ENTRY="${AUTO_APP_DEPLOY_KEEPASS_ENTRY:-GITOPS_TOKEN}"
+DEFAULT_DB_PATH="/home/jan/.config/auto-app-deploy/secrets.kdbx"
+ENTRY_NAME="GITOPS_TOKEN"
 
-die() {
-  printf 'Error: %s\n' "$*" >&2
+require_command() {
+  local cmd="$1"
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Error: Missing required command: $cmd" >&2
+    echo "Install it with: sudo apt-get install -y keepassxc" >&2
+    exit 1
+  fi
+}
+
+read_secret() {
+  local prompt="$1"
+  local value=""
+
+  printf "%s" "$prompt" >&2
+  IFS= read -r -s value
+  printf "\n" >&2
+
+  printf "%s" "$value"
+}
+
+require_command keepassxc-cli
+
+echo "KeePassXC token store setup"
+echo
+
+read -r -p "KeePassXC database path [${DEFAULT_DB_PATH}]: " DB_PATH
+DB_PATH="${DB_PATH:-$DEFAULT_DB_PATH}"
+
+echo
+echo "KeePassXC database: ${DB_PATH}"
+echo "KeePassXC entry:    ${ENTRY_NAME}"
+echo
+
+read -r -p "Do you already have the GitOps GitHub token? [y]: " HAVE_TOKEN
+HAVE_TOKEN="${HAVE_TOKEN:-y}"
+
+case "$HAVE_TOKEN" in
+  y|Y|yes|YES|Yes)
+    ;;
+  *)
+    echo "Create a GitHub token first, then run this script again."
+    exit 1
+    ;;
+esac
+
+mkdir -p "$(dirname "$DB_PATH")"
+
+DB_EXISTS="true"
+if [ ! -f "$DB_PATH" ]; then
+  DB_EXISTS="false"
+  echo
+  echo "KeePassXC database does not exist yet:"
+  echo "$DB_PATH"
+  echo
+  echo "Creating new KeePassXC database."
+  DB_PASSWORD="$(read_secret "Enter new password for ${DB_PATH}: ")"
+  DB_PASSWORD_CONFIRM="$(read_secret "Confirm new password for ${DB_PATH}: ")"
+
+  if [ "$DB_PASSWORD" != "$DB_PASSWORD_CONFIRM" ]; then
+    echo "Error: Passwords do not match." >&2
+    exit 1
+  fi
+
+  printf "%s\n%s\n" "$DB_PASSWORD" "$DB_PASSWORD_CONFIRM" \
+    | keepassxc-cli db-create --set-password "$DB_PATH" >/dev/null
+
+  echo "Created KeePassXC database."
+else
+  DB_PASSWORD="$(read_secret "Enter password to unlock ${DB_PATH}: ")"
+fi
+
+if [ "$DB_EXISTS" = "true" ]; then
+  if ! printf "%s\n" "$DB_PASSWORD" | keepassxc-cli ls "$DB_PATH" >/dev/null 2>&1; then
+    echo "Error: Could not unlock KeePassXC database." >&2
+    exit 1
+  fi
+fi
+
+echo
+
+if printf "%s\n" "$DB_PASSWORD" | keepassxc-cli show "$DB_PATH" "$ENTRY_NAME" >/dev/null 2>&1; then
+  echo "Entry exists. Updating token value."
+  NEW_VALUE="$(read_secret "Enter new entry value: ")"
+
+  printf "%s\n%s\n" "$DB_PASSWORD" "$NEW_VALUE" \
+    | keepassxc-cli edit --password-prompt "$DB_PATH" "$ENTRY_NAME" >/dev/null
+
+  echo "Successfully edited entry ${ENTRY_NAME}."
+else
+  echo "Entry does not exist. Creating entry."
+  NEW_VALUE="$(read_secret "Enter new entry value: ")"
+
+  printf "%s\n%s\n" "$DB_PASSWORD" "$NEW_VALUE" \
+    | keepassxc-cli add --password-prompt --username "$ENTRY_NAME" "$DB_PATH" "$ENTRY_NAME" >/dev/null
+
+  echo "Successfully created entry ${ENTRY_NAME}."
+fi
+
+echo "Verifying entry."
+
+if printf "%s\n" "$DB_PASSWORD" | keepassxc-cli show "$DB_PATH" "$ENTRY_NAME" >/dev/null 2>&1; then
+  echo "Verification successful."
+else
+  echo "Error: Verification failed." >&2
   exit 1
-}
-
-need_cmd() {
-  command -v "$1" >/dev/null 2>&1 || die "Missing required command: $1"
-}
-
-yes_no() {
-  local label="$1"
-  local default="${2:-y}"
-  local value
-
-  read -r -p "$label [$default]: " value
-  value="${value:-$default}"
-
-  case "$value" in
-    y|Y|yes|YES) return 0 ;;
-    n|N|no|NO) return 1 ;;
-    *) die "Please answer y or n." ;;
-  esac
-}
-
-print_token_instructions() {
-  cat <<'EOF'
-
-Create a GitHub fine-grained personal access token:
-
-1. Open: https://github.com/settings/personal-access-tokens/new
-2. Repository access: only Branchenprimus/auto-app-deploy
-3. Repository permissions: Contents -> Write
-4. Generate the token.
-5. Re-run this script and paste the token when KeePassXC asks for the entry password.
-
-EOF
-}
-
-entry_exists() {
-  keepassxc-cli show "$KEEPASS_DB" "$KEEPASS_ENTRY" >/dev/null 2>&1
-}
-
-main() {
-  need_cmd keepassxc-cli
-
-  printf 'KeePassXC database: %s\n' "$KEEPASS_DB"
-  printf 'KeePassXC entry:    %s\n' "$KEEPASS_ENTRY"
-
-  if ! yes_no 'Do you already have the GitOps GitHub token?' 'y'; then
-    print_token_instructions
-    exit 0
-  fi
-
-  mkdir -p "$(dirname "$KEEPASS_DB")"
-
-  if [[ ! -f "$KEEPASS_DB" ]]; then
-    printf 'Creating KeePassXC database.\n'
-    printf 'Enter a new database password when KeePassXC asks.\n'
-    keepassxc-cli db-create -p "$KEEPASS_DB"
-  fi
-
-  printf 'Enter password to unlock %s when KeePassXC asks.\n' "$KEEPASS_DB"
-
-  if entry_exists; then
-    printf 'Entry exists. Updating token value.\n'
-    printf 'Paste the GitOps token when KeePassXC asks for the entry password.\n'
-    keepassxc-cli edit -p "$KEEPASS_DB" "$KEEPASS_ENTRY"
-  else
-    printf 'Creating entry %s.\n' "$KEEPASS_ENTRY"
-    printf 'Paste the GitOps token when KeePassXC asks for the new entry password.\n'
-    keepassxc-cli add -p "$KEEPASS_DB" "$KEEPASS_ENTRY"
-  fi
-
-  printf 'Verifying entry.\n'
-  entry_exists || die "Could not verify KeePassXC entry: $KEEPASS_ENTRY"
-
-  printf '\nSuccess. create-new-app.sh will use:\n'
-  printf '  DB:    %s\n' "$KEEPASS_DB"
-  printf '  Entry: %s\n' "$KEEPASS_ENTRY"
-}
-
-main "$@"
+fi
