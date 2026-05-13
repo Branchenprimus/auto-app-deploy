@@ -11,6 +11,11 @@ DEFAULT_GITOPS_BRANCH="main"
 DEFAULT_KEEPASS_ENTRY="GitHub/GITOPS_TOKEN"
 DEFAULT_PROJECTS_DIR="/home/jan/projects"
 
+# Adjust these defaults if your KeePassXC database or token entry lives elsewhere.
+# If the database is missing, run: scripts/setup-gitops-token-store.sh
+DEFAULT_KEEPASS_DB="${HOME}/.config/auto-app-deploy/secrets.kdbx"
+DEFAULT_KEEPASS_KEY_FILE=""
+
 die() {
   printf 'Error: %s\n' "$*" >&2
   exit 1
@@ -137,7 +142,7 @@ get_keepass_password() {
     args+=(--key-file "$key_file")
   fi
 
-  keepassxc-cli show -q -a Password "${args[@]}" "$db_path" "$entry"
+  keepassxc-cli show -q -s -a Password "${args[@]}" "$db_path" "$entry"
 }
 
 ensure_repo() {
@@ -219,9 +224,15 @@ main() {
     *) die "Unsupported visibility: $visibility" ;;
   esac
 
-  KEEPASS_DB="$(prompt 'KeePassXC database path')"
-  KEEPASS_ENTRY="$(prompt 'KeePassXC entry for GITOPS_TOKEN' "$DEFAULT_KEEPASS_ENTRY")"
-  KEEPASS_KEY_FILE="$(prompt_optional 'KeePassXC key file path, empty if none')"
+  KEEPASS_DB="${AUTO_APP_DEPLOY_KEEPASS_DB:-$DEFAULT_KEEPASS_DB}"
+  KEEPASS_ENTRY="${AUTO_APP_DEPLOY_KEEPASS_ENTRY:-$DEFAULT_KEEPASS_ENTRY}"
+  KEEPASS_KEY_FILE="${AUTO_APP_DEPLOY_KEEPASS_KEY_FILE:-$DEFAULT_KEEPASS_KEY_FILE}"
+
+  printf 'Using KeePassXC database: %s\n' "$KEEPASS_DB"
+  printf 'Using KeePassXC entry: %s\n' "$KEEPASS_ENTRY"
+  if [[ ! -f "$KEEPASS_DB" ]]; then
+    die "KeePassXC database is missing. Run: $PLATFORM_DIR/scripts/setup-gitops-token-store.sh"
+  fi
 
   [[ -f "$APP_PATH/Dockerfile" ]] || {
     if ! prompt_yes_no 'Dockerfile is missing. Continue anyway?' 'n'; then

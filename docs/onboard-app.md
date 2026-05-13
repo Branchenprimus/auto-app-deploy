@@ -12,6 +12,19 @@ keepassxc-cli
 git
 ```
 
+Einmalig den zentralen GitOps-Token in KeePassXC speichern:
+
+```bash
+/home/jan/projects/auto-app-deploy/scripts/setup-gitops-token-store.sh
+```
+
+Standard:
+
+```text
+DB:    ~/.config/auto-app-deploy/secrets.kdbx
+Entry: GitHub/GITOPS_TOKEN
+```
+
 Start:
 
 ```bash
@@ -25,7 +38,6 @@ lokalem App-Pfad unter /home/jan/projects
 GitHub Owner und Repo
 App-Name, Hostname und Port
 Cloudflare Access ja/nein
-KeePassXC Datenbank und GITOPS_TOKEN Entry
 ```
 
 Gib z. B. `my-app` ein, um `/home/jan/projects/my-app` zu verwenden. Existiert der Ordner noch nicht, fragt das Script, ob es ihn erstellen soll.
