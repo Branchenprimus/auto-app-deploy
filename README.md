@@ -40,6 +40,8 @@ Every app repo needs:
 
 See [app-template/app.yaml](/home/jan/projects/auto-app-deploy/app-template/app.yaml) for the expected fields.
 
+New apps should follow [docs/onboard-app.md](/home/jan/projects/auto-app-deploy/docs/onboard-app.md).
+
 ## Cloudflare Access
 
 Apps are protected by Cloudflare Zero Trust Access by default through Terraform.
