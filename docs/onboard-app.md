@@ -42,6 +42,8 @@ Cloudflare Access ja/nein
 
 Gib z. B. `my-app` ein, um `/home/jan/projects/my-app` zu verwenden. Existiert der Ordner noch nicht, fragt das Script, ob es ihn erstellen soll.
 
+Wenn der Ordner bereits ein Git-Repo mit GitHub-`origin` ist, verwendet das Script diesen Remote als Default, z. B. `Branchenprimus/Flashcards`.
+
 Danach legt es `app.yaml` und den Release-Workflow an, erstellt das GitHub-Repo, setzt `GITOPS_TOKEN` und pusht den Branch.
 
 ## Manuell

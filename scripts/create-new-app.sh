@@ -86,7 +86,7 @@ write_app_yaml() {
 name: $APP_NAME
 
 image:
-  repository: ghcr.io/${OWNER_SLUG}/$REPO_NAME
+  repository: ghcr.io/${OWNER_SLUG}/$IMAGE_REPO_NAME
 
 container:
   port: $CONTAINER_PORT
@@ -145,9 +145,42 @@ get_keepass_password() {
   keepassxc-cli show -q -s -a Password "${args[@]}" "$db_path" "$entry"
 }
 
+github_repo_from_origin() {
+  local app_path="$1"
+  local url
+  local repo
+
+  url="$(git -C "$app_path" remote get-url origin 2>/dev/null || true)"
+  [[ -n "$url" ]] || return 1
+
+  case "$url" in
+    git@github.com:*)
+      repo="${url#git@github.com:}"
+      ;;
+    ssh://git@github.com/*)
+      repo="${url#ssh://git@github.com/}"
+      ;;
+    https://github.com/*)
+      repo="${url#https://github.com/}"
+      ;;
+    http://github.com/*)
+      repo="${url#http://github.com/}"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  repo="${repo%.git}"
+  [[ "$repo" == */* ]] || return 1
+  printf '%s' "$repo"
+}
+
 ensure_repo() {
   local repo="$1"
   local visibility_flag="$2"
+  local origin_url
+  local origin_repo
 
   if gh repo view "$repo" >/dev/null 2>&1; then
     printf 'GitHub repo already exists: %s\n' "$repo"
@@ -155,8 +188,20 @@ ensure_repo() {
     gh repo create "$repo" "$visibility_flag"
   fi
 
-  if git -C "$APP_PATH" remote get-url origin >/dev/null 2>&1; then
-    printf 'Git remote origin already exists: %s\n' "$(git -C "$APP_PATH" remote get-url origin)"
+  origin_url="$(git -C "$APP_PATH" remote get-url origin 2>/dev/null || true)"
+  if [[ -n "$origin_url" ]]; then
+    printf 'Git remote origin already exists: %s\n' "$origin_url"
+
+    origin_repo="$(github_repo_from_origin "$APP_PATH" || true)"
+    if [[ -n "$origin_repo" && "$origin_repo" != "$repo" ]]; then
+      printf 'Origin points to GitHub repo: %s\n' "$origin_repo"
+      printf 'Selected GitHub repo:        %s\n' "$repo"
+      if prompt_yes_no 'Update origin to selected repo?' 'n'; then
+        git -C "$APP_PATH" remote set-url origin "git@github.com:${repo}.git"
+      else
+        die "Existing origin does not match selected repo."
+      fi
+    fi
   else
     git -C "$APP_PATH" remote add origin "git@github.com:${repo}.git"
   fi
@@ -203,11 +248,24 @@ main() {
   APP_PATH="$(realpath "$APP_PATH")"
 
   local detected_name
+  local detected_repo
+  local owner_default
+  local repo_default
   detected_name="$(slugify "$(basename "$APP_PATH")")"
+  owner_default="$DEFAULT_OWNER"
+  repo_default="$detected_name"
 
-  OWNER="$(prompt 'GitHub owner/user' "$DEFAULT_OWNER")"
+  detected_repo="$(github_repo_from_origin "$APP_PATH" || true)"
+  if [[ -n "$detected_repo" ]]; then
+    owner_default="${detected_repo%%/*}"
+    repo_default="${detected_repo#*/}"
+    printf 'Detected existing GitHub origin: %s\n' "$detected_repo"
+  fi
+
+  OWNER="$(prompt 'GitHub owner/user' "$owner_default")"
   OWNER_SLUG="$(slugify "$OWNER")"
-  REPO_NAME="$(prompt 'GitHub repo name' "$detected_name")"
+  REPO_NAME="$(prompt 'GitHub repo name' "$repo_default")"
+  IMAGE_REPO_NAME="$(slugify "$REPO_NAME")"
   APP_NAME="$(prompt 'App name' "$(slugify "$REPO_NAME")")"
   HOSTNAME="$(prompt 'App hostname' "${APP_NAME}.${DEFAULT_DOMAIN}")"
   CONTAINER_PORT="$(prompt 'Container HTTP port' '80')"
