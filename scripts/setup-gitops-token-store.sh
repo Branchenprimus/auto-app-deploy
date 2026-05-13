@@ -58,8 +58,11 @@ main() {
   local group
 
   db_path="$(prompt 'KeePassXC database path' "$DEFAULT_KEEPASS_DB")"
-  entry="$(prompt 'KeePassXC entry for GITOPS_TOKEN' "$DEFAULT_KEEPASS_ENTRY")"
+  entry="${AUTO_APP_DEPLOY_KEEPASS_ENTRY:-$DEFAULT_KEEPASS_ENTRY}"
   group="${entry%/*}"
+
+  printf 'KeePassXC entry for GITOPS_TOKEN: %s\n' "$entry"
+  printf 'Do not paste the GitHub token until KeePassXC asks for the entry password/token.\n'
 
   mkdir -p "$(dirname "$db_path")"
 
@@ -80,12 +83,12 @@ main() {
 
   if entry_exists "$db_path" "$entry"; then
     if prompt_yes_no 'Entry exists. Replace its password/token?' 'y'; then
-      printf 'KeePassXC will ask for the database password and then the GitOps token.\n'
+      printf 'KeePassXC will ask for the database password and then the GitOps token as the entry password.\n'
       keepassxc-cli edit -p "$db_path" "$entry"
     fi
   else
     printf 'Adding KeePassXC entry: %s\n' "$entry"
-    printf 'KeePassXC will ask for the database password and then the GitOps token.\n'
+    printf 'KeePassXC will ask for the database password and then the GitOps token as the entry password.\n'
     keepassxc-cli add -p "$db_path" "$entry"
   fi
 
