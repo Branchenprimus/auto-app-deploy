@@ -1,6 +1,36 @@
 # App Onboarding
 
-Start: Du hast lokal einen eigenen App-Ordner mit eigenem GitHub-Repo.
+Start: Du hast lokal einen eigenen App-Ordner. Das GitHub-Repo kann schon existieren oder vom Script erstellt werden.
+
+## Automatisch
+
+Voraussetzungen:
+
+```text
+gh
+keepassxc-cli
+git
+```
+
+Start:
+
+```bash
+/home/jan/projects/auto-app-deploy/scripts/create-new-app.sh
+```
+
+Das Script fragt interaktiv nach:
+
+```text
+lokalem App-Pfad
+GitHub Owner und Repo
+App-Name, Hostname und Port
+Cloudflare Access ja/nein
+KeePassXC Datenbank und GITOPS_TOKEN Entry
+```
+
+Danach legt es `app.yaml` und den Release-Workflow an, erstellt das GitHub-Repo, setzt `GITOPS_TOKEN` und pusht den Branch.
+
+## Manuell
 
 ## 1. App containerfaehig machen
 
