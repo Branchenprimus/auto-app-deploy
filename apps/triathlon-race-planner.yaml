@@ -2,6 +2,8 @@ name: triathlon-race-planner
 
 image:
   repository: ghcr.io/branchenprimus/triathlon-race-planner
+  tag: v0.1.1
+  pullPolicy: IfNotPresent
 
 container:
   port: 80
@@ -22,3 +24,5 @@ resources:
     memory: 128Mi
 
 env: []
+
+namespace: apps
