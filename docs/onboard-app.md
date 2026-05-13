@@ -21,12 +21,14 @@ Start:
 Das Script fragt interaktiv nach:
 
 ```text
-lokalem App-Pfad
+lokalem App-Pfad unter /home/jan/projects
 GitHub Owner und Repo
 App-Name, Hostname und Port
 Cloudflare Access ja/nein
 KeePassXC Datenbank und GITOPS_TOKEN Entry
 ```
+
+Gib z. B. `my-app` ein, um `/home/jan/projects/my-app` zu verwenden. Existiert der Ordner noch nicht, fragt das Script, ob es ihn erstellen soll.
 
 Danach legt es `app.yaml` und den Release-Workflow an, erstellt das GitHub-Repo, setzt `GITOPS_TOKEN` und pusht den Branch.
 

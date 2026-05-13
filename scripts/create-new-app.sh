@@ -9,6 +9,7 @@ DEFAULT_DOMAIN="darwin-labs.org"
 DEFAULT_GITOPS_REPO="Branchenprimus/auto-app-deploy"
 DEFAULT_GITOPS_BRANCH="main"
 DEFAULT_KEEPASS_ENTRY="GitHub/GITOPS_TOKEN"
+DEFAULT_PROJECTS_DIR="/home/jan/projects"
 
 die() {
   printf 'Error: %s\n' "$*" >&2
@@ -61,6 +62,16 @@ slugify() {
   printf '%s' "$1" \
     | tr '[:upper:]' '[:lower:]' \
     | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//'
+}
+
+resolve_app_path() {
+  local input="$1"
+
+  if [[ "$input" = /* ]]; then
+    printf '%s' "$input"
+  else
+    printf '%s/%s' "$DEFAULT_PROJECTS_DIR" "$input"
+  fi
 }
 
 write_app_yaml() {
@@ -167,9 +178,24 @@ main() {
 
   gh auth status >/dev/null 2>&1 || die "gh is not authenticated. Run: gh auth login"
 
-  APP_PATH="$(prompt 'Local app path')"
+  printf 'New local apps are created under: %s\n' "$DEFAULT_PROJECTS_DIR"
+  printf 'Enter a directory name like "my-app" or an absolute path.\n'
+  APP_PATH_INPUT="$(prompt 'Local app path')"
+  APP_PATH="$(resolve_app_path "$APP_PATH_INPUT")"
+
+  if [[ -d "$APP_PATH" ]]; then
+    printf 'Using existing app directory: %s\n' "$APP_PATH"
+  else
+    printf 'App directory does not exist: %s\n' "$APP_PATH"
+    if prompt_yes_no 'Create it as a new app directory?' 'y'; then
+      mkdir -p "$APP_PATH"
+      printf 'Created app directory: %s\n' "$APP_PATH"
+    else
+      die "Directory does not exist: $APP_PATH"
+    fi
+  fi
+
   APP_PATH="$(realpath "$APP_PATH")"
-  [[ -d "$APP_PATH" ]] || die "Directory does not exist: $APP_PATH"
 
   local detected_name
   detected_name="$(slugify "$(basename "$APP_PATH")")"
