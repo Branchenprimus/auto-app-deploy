@@ -25,7 +25,7 @@ DB:    ~/.config/auto-app-deploy/secrets.kdbx
 Entry: GITOPS_TOKEN
 ```
 
-Das Setup fragt nicht nach dem Entry-Pfad. Den GitHub-Token erst einfuegen, wenn KeePassXC nach dem Entry-Passwort/Token fragt.
+Das Setup fragt nicht nach dem Entry-Pfad. Den GitHub-Token erst einfuegen, wenn KeePassXC nach dem Entry-Passwort fragt.
 Wenn noch kein Token existiert, im Setup `n` waehlen. Das Script zeigt dann die noetigen GitHub-Berechtigungen.
 
 Start:
