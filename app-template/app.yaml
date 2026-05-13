@@ -10,6 +10,9 @@ route:
   host: demo.darwin-labs.org
   path: /
 
+access:
+  enabled: true
+
 resources:
   requests:
     cpu: 50m

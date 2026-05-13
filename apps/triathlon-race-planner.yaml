@@ -8,6 +8,8 @@ container:
 route:
   host: triathlon-race-planner.darwin-labs.org
   path: /
+access:
+  enabled: true
 resources:
   requests:
     cpu: 25m

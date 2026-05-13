@@ -1,0 +1,10 @@
+cloudflare_account_id = "replace-with-cloudflare-account-id"
+
+# Zero Trust -> Settings -> Authentication -> Login methods -> Google -> ID
+allowed_idp_ids = [
+  "replace-with-google-idp-id"
+]
+
+default_access_enabled = true
+default_session_duration = "24h"
+auto_redirect_to_identity = true

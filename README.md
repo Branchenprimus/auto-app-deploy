@@ -16,6 +16,7 @@ argocd/                       ArgoCD ApplicationSet
 chart/single-container-webapp Generic Helm chart for one HTTP container
 app-template/                 Files to copy into application repositories
 docs/                         Setup notes for the Raspberry Pi platform
+terraform/cloudflare-access/  Cloudflare Zero Trust Access apps generated from apps/*.yaml
 ```
 
 ## First Deploy Checklist
@@ -38,3 +39,21 @@ Every app repo needs:
 - a tag release such as `v0.1.0`
 
 See [app-template/app.yaml](/home/jan/projects/auto-app-deploy/app-template/app.yaml) for the expected fields.
+
+## Cloudflare Access
+
+Apps are protected by Cloudflare Zero Trust Access by default through Terraform.
+
+```yaml
+access:
+  enabled: true
+```
+
+Make an app public with:
+
+```yaml
+access:
+  enabled: false
+```
+
+See [terraform/cloudflare-access/README.md](/home/jan/projects/auto-app-deploy/terraform/cloudflare-access/README.md).
