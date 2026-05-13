@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "single-container-webapp.name" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "single-container-webapp.labels" . | nindent 4 }}
+spec:
+  rules:
+    - host: {{ .Values.route.host }}
+      http:
+        paths:
+          - path: {{ .Values.route.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "single-container-webapp.name" . }}
+                port:
+                  name: http

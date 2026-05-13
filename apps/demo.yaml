@@ -1,0 +1,28 @@
+name: demo
+namespace: apps
+
+image:
+  repository: ghcr.io/branchenprimus/demo
+  tag: v0.1.0
+  pullPolicy: IfNotPresent
+
+container:
+  port: 3000
+
+route:
+  host: demo.darwin-labs.org
+  path: /
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+env:
+  - name: NODE_ENV
+    value: production

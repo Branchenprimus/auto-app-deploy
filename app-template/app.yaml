@@ -1,0 +1,23 @@
+name: demo
+
+image:
+  repository: ghcr.io/branchenprimus/demo
+
+container:
+  port: 3000
+
+route:
+  host: demo.darwin-labs.org
+  path: /
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+env:
+  - name: NODE_ENV
+    value: production
