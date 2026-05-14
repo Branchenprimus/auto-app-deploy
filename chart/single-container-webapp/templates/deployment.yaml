@@ -15,6 +15,10 @@ spec:
       labels:
         {{- include "single-container-webapp.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ include "single-container-webapp.name" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

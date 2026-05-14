@@ -372,6 +372,7 @@ name: $APP_NAME
 
 image:
   repository: ghcr.io/${OWNER_SLUG}/$IMAGE_REPO_NAME
+  pullSecrets:$IMAGE_PULL_SECRETS_YAML
 
 container:
   port: $CONTAINER_PORT
@@ -582,8 +583,14 @@ main() {
   local visibility
   visibility="$(prompt 'GitHub repo visibility: private/public' 'private')"
   case "$visibility" in
-    private) VISIBILITY_FLAG="--private" ;;
-    public) VISIBILITY_FLAG="--public" ;;
+    private)
+      VISIBILITY_FLAG="--private"
+      IMAGE_PULL_SECRETS_YAML=$'\n    - name: ghcr-pull'
+      ;;
+    public)
+      VISIBILITY_FLAG="--public"
+      IMAGE_PULL_SECRETS_YAML=" []"
+      ;;
     *) die "Unsupported visibility: $visibility" ;;
   esac
 
