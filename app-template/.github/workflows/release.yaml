@@ -13,6 +13,7 @@ env:
   REGISTRY: ghcr.io
   GITOPS_REPO: Branchenprimus/auto-app-deploy
   GITOPS_BRANCH: main
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   release:

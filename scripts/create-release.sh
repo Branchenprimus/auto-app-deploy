@@ -162,6 +162,124 @@ print_run_steps() {
     --jq '.jobs[] | "Job: \(.name) [\(if .conclusion == "" or .conclusion == null then .status else .conclusion end)]", (.steps[] | "  - \(.name): \(if .conclusion == "" or .conclusion == null then .status else .conclusion end)")'
 }
 
+app_yaml_value() {
+  local repo_path="$1"
+  local key_path="$2"
+  local app_yaml="$repo_path/app.yaml"
+  local parent
+  local child
+
+  [[ -f "$app_yaml" ]] || return 0
+
+  if command -v yq >/dev/null 2>&1; then
+    yq -r ".$key_path // \"\"" "$app_yaml"
+    return
+  fi
+
+  if [[ "$key_path" != *.* ]]; then
+    awk -F ': *' -v key="$key_path" '
+      $1 == key {
+        value = $2
+        gsub(/^["'\'']|["'\'']$/, "", value)
+        print value
+        exit
+      }
+    ' "$app_yaml"
+    return
+  fi
+
+  parent="${key_path%%.*}"
+  child="${key_path#*.}"
+
+  awk -F ': *' -v parent="$parent" -v child="$child" '
+    $1 == parent {
+      in_parent = 1
+      next
+    }
+    in_parent && $0 !~ /^  / {
+      in_parent = 0
+    }
+    in_parent && $1 == "  " child {
+      value = $2
+      gsub(/^["'\'']|["'\'']$/, "", value)
+      print value
+      exit
+    }
+  ' "$app_yaml"
+}
+
+target_url_from_app_yaml() {
+  local repo_path="$1"
+  local host
+  local path
+
+  host="$(app_yaml_value "$repo_path" "route.host")"
+  path="$(app_yaml_value "$repo_path" "route.path")"
+
+  [[ -n "$host" ]] || return 0
+
+  if [[ -z "$path" || "$path" == "/" ]]; then
+    printf 'https://%s' "$host"
+  else
+    printf 'https://%s/%s' "$host" "${path#/}"
+  fi
+}
+
+print_release_summary() {
+  local repo_path="$1"
+  local repo="$2"
+  local release_tag="$3"
+  local head_sha="$4"
+  local run_id="$5"
+  local watch_status="$6"
+  local logs_status="$7"
+  local run_url="https://github.com/${repo}/actions/runs/${run_id}"
+  local app_name
+  local image_repo
+  local image_ref
+  local target_url
+  local access_enabled
+  local branch
+  local run_state
+
+  app_name="$(app_yaml_value "$repo_path" "name")"
+  image_repo="$(app_yaml_value "$repo_path" "image.repository")"
+  target_url="$(target_url_from_app_yaml "$repo_path")"
+  access_enabled="$(app_yaml_value "$repo_path" "access.enabled")"
+  branch="$(git -C "$repo_path" branch --show-current)"
+  run_state="$(
+    gh run view "$run_id" \
+      --repo "$repo" \
+      --json status,conclusion \
+      --jq 'if .conclusion == "" or .conclusion == null then .status else .conclusion end'
+  )"
+
+  if [[ -n "$image_repo" ]]; then
+    image_ref="${image_repo}:${release_tag}"
+  fi
+
+  printf '\nRelease summary:\n'
+  printf '  Status:          %s\n' "$run_state"
+  printf '  Version:         %s\n' "$release_tag"
+  [[ -n "$app_name" ]] && printf '  App:             %s\n' "$app_name"
+  printf '  GitHub repo:     %s\n' "$repo"
+  printf '  Local repo:      %s\n' "$repo_path"
+  [[ -n "$branch" ]] && printf '  Source branch:   %s\n' "$branch"
+  printf '  Commit:          %s\n' "$head_sha"
+  [[ -n "$image_ref" ]] && printf '  Container image: %s\n' "$image_ref"
+  [[ -n "$target_url" ]] && printf '  Target URL:      %s\n' "$target_url"
+  [[ -n "$access_enabled" ]] && printf '  Access enabled:  %s\n' "$access_enabled"
+  printf '  Actions run:     %s\n' "$run_url"
+
+  if [[ "$watch_status" -ne 0 ]]; then
+    printf '  Note:            Pipeline finished with a non-success status.\n'
+  elif [[ "$logs_status" -ne 0 ]]; then
+    printf '  Note:            Pipeline succeeded, but log printing returned an error.\n'
+  else
+    printf '  Next:            ArgoCD should sync the updated GitOps app values.\n'
+  fi
+}
+
 main() {
   need_cmd git
   need_cmd gh
@@ -184,6 +302,7 @@ main() {
   local head_sha
   local run_id
   local watch_status
+  local logs_status
 
   repo_path_input="$(prompt 'Local repo path')"
   repo_path="$(resolve_repo_path "$repo_path_input")"
@@ -247,8 +366,16 @@ main() {
   print_run_steps "$repo" "$run_id"
 
   printf '\nPipeline logs:\n'
+  set +e
   gh run view "$run_id" --repo "$repo" --log
+  logs_status="$?"
+  set -e
 
+  print_release_summary "$repo_path" "$repo" "$release_tag" "$head_sha" "$run_id" "$watch_status" "$logs_status"
+
+  if [[ "$logs_status" -ne 0 ]]; then
+    return "$logs_status"
+  fi
   return "$watch_status"
 }
 
