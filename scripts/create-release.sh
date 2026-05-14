@@ -3,6 +3,7 @@ set -euo pipefail
 
 DEFAULT_PROJECTS_DIR="/home/jan/projects"
 DEFAULT_GITOPS_REPO_PATH="/home/jan/projects/auto-app-deploy"
+DEFAULT_LIVE_TIMEOUT_SECONDS=300
 
 die() {
   printf 'Error: %s\n' "$*" >&2
@@ -226,6 +227,143 @@ target_url_from_app_yaml() {
   fi
 }
 
+print_argocd_live_updates() {
+  local app_name="$1"
+  local timeout_seconds="$2"
+  local end_time
+  local sync_status=""
+  local health_status=""
+  local revision=""
+
+  [[ -n "$app_name" ]] || return 0
+
+  if command -v argocd >/dev/null 2>&1; then
+    printf '\nArgoCD live status:\n'
+    argocd app wait "$app_name" --sync --health --timeout "$timeout_seconds" || true
+    argocd app get "$app_name" || true
+    return 0
+  fi
+
+  command -v kubectl >/dev/null 2>&1 || return 0
+  kubectl get application "$app_name" -n argocd >/dev/null 2>&1 || return 0
+
+  printf '\nArgoCD live status:\n'
+  end_time="$(($(date +%s) + timeout_seconds))"
+
+  while [[ "$(date +%s)" -le "$end_time" ]]; do
+    sync_status="$(
+      kubectl get application "$app_name" -n argocd \
+        -o jsonpath='{.status.sync.status}' 2>/dev/null || true
+    )"
+    health_status="$(
+      kubectl get application "$app_name" -n argocd \
+        -o jsonpath='{.status.health.status}' 2>/dev/null || true
+    )"
+    revision="$(
+      kubectl get application "$app_name" -n argocd \
+        -o jsonpath='{.status.sync.revision}' 2>/dev/null || true
+    )"
+
+    printf '  ArgoCD app %s: sync=%s health=%s revision=%s\n' \
+      "$app_name" \
+      "${sync_status:-unknown}" \
+      "${health_status:-unknown}" \
+      "${revision:-unknown}"
+
+    if [[ "$sync_status" == "Synced" && "$health_status" == "Healthy" ]]; then
+      return 0
+    fi
+
+    sleep 10
+  done
+
+  printf '  ArgoCD status watch timed out after %ss.\n' "$timeout_seconds"
+}
+
+print_kubernetes_live_updates() {
+  local repo_path="$1"
+  local release_tag="$2"
+  local timeout_seconds="$3"
+  local app_name
+  local namespace
+  local image_repo
+  local expected_image
+  local current_image=""
+  local end_time
+
+  command -v kubectl >/dev/null 2>&1 || {
+    printf '\nLive deploy status:\n'
+    printf '  kubectl is not installed; skipping cluster status.\n'
+    return 0
+  }
+
+  app_name="$(app_yaml_value "$repo_path" "name")"
+  namespace="$(app_yaml_value "$repo_path" "namespace")"
+  image_repo="$(app_yaml_value "$repo_path" "image.repository")"
+  namespace="${namespace:-apps}"
+
+  [[ -n "$app_name" ]] || return 0
+
+  if [[ -n "$image_repo" ]]; then
+    expected_image="${image_repo}:${release_tag}"
+  fi
+
+  printf '\nKubernetes live status:\n'
+
+  if ! kubectl get namespace "$namespace" >/dev/null 2>&1; then
+    printf '  Namespace %s is not visible from the current kubeconfig.\n' "$namespace"
+    return 0
+  fi
+
+  if [[ -n "${expected_image:-}" ]]; then
+    printf '  Waiting for deployment/%s to use image %s...\n' "$app_name" "$expected_image"
+    end_time="$(($(date +%s) + timeout_seconds))"
+
+    while [[ "$(date +%s)" -le "$end_time" ]]; do
+      current_image="$(
+        kubectl get deployment "$app_name" -n "$namespace" \
+          -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true
+      )"
+
+      if [[ "$current_image" == "$expected_image" ]]; then
+        printf '  Deployment image: %s\n' "$current_image"
+        break
+      fi
+
+      printf '  Deployment image: %s\n' "${current_image:-not created yet}"
+      sleep 10
+    done
+  fi
+
+  printf '  Waiting for rollout...\n'
+  kubectl rollout status "deployment/${app_name}" -n "$namespace" --timeout="${timeout_seconds}s" || true
+
+  printf '\nKubernetes resources:\n'
+  kubectl get deployment,service,ingress -n "$namespace" "$app_name" -o wide 2>/dev/null || true
+  printf '\nPods:\n'
+  kubectl get pods -n "$namespace" \
+    -l "app.kubernetes.io/name=${app_name}" \
+    -o wide 2>/dev/null || true
+}
+
+print_live_deploy_updates() {
+  local repo_path="$1"
+  local release_tag="$2"
+  local timeout_seconds="${AUTO_APP_DEPLOY_LIVE_TIMEOUT:-$DEFAULT_LIVE_TIMEOUT_SECONDS}"
+  local app_name
+
+  [[ "$timeout_seconds" =~ ^[0-9]+$ ]] || timeout_seconds="$DEFAULT_LIVE_TIMEOUT_SECONDS"
+
+  if [[ "$timeout_seconds" -eq 0 ]]; then
+    printf '\nLive deploy status skipped because AUTO_APP_DEPLOY_LIVE_TIMEOUT=0.\n'
+    return 0
+  fi
+
+  app_name="$(app_yaml_value "$repo_path" "name")"
+  print_argocd_live_updates "$app_name" "$timeout_seconds"
+  print_kubernetes_live_updates "$repo_path" "$release_tag" "$timeout_seconds"
+}
+
 print_release_summary() {
   local repo_path="$1"
   local repo="$2"
@@ -383,6 +521,10 @@ main() {
   gh run view "$run_id" --repo "$repo" --log
   logs_status="$?"
   set -e
+
+  if [[ "$watch_status" -eq 0 ]]; then
+    print_live_deploy_updates "$repo_path" "$release_tag"
+  fi
 
   print_release_summary "$repo_path" "$repo" "$release_tag" "$head_sha" "$run_id" "$watch_status" "$logs_status"
 
