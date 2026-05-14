@@ -48,17 +48,19 @@ allowed_idp_ids
 
 The `allowed_idp_ids` list should contain your Google login method ID from Cloudflare Zero Trust.
 
-For GitHub Actions, set repository variables:
+For GitHub Actions, set one repository secret so the workflow can start Terraform
+Cloud runs:
 
 ```text
-CLOUDFLARE_ACCOUNT_ID=<account id>
-CLOUDFLARE_ALLOWED_IDP_IDS=["<google idp id>"]
-TF_AUTO_APPLY_CLOUDFLARE_ACCESS=true
+TF_API_TOKEN=<Terraform Cloud token>
 ```
 
-and repository secret:
+Set the Cloudflare values as Terraform Cloud workspace variables for the
+`cloudflare-access` workspace:
 
 ```text
+cloudflare_account_id=<account id>
+allowed_idp_ids=["<google idp id>"]
 CLOUDFLARE_API_TOKEN=<token with Access Apps and Policies edit access>
 ```
 
@@ -84,6 +86,10 @@ terraform import \
 
 ## Auto Apply
 
-The GitHub Actions workflow in `.github/workflows/cloudflare-access.yaml` is intentionally guarded by `TF_AUTO_APPLY_CLOUDFLARE_ACCESS == "true"`.
+The GitHub Actions workflow in `.github/workflows/cloudflare-access.yaml` starts a
+Terraform Cloud run whenever app YAML or Cloudflare Access Terraform changes on
+`main`.
 
-Before enabling it, configure persistent Terraform state in `versions.tf`, for example Terraform Cloud. Do not run automatic applies with throwaway local state.
+Before using automatic applies, configure persistent Terraform state in
+`versions.tf`, for example Terraform Cloud. Do not run automatic applies with
+throwaway local state.
