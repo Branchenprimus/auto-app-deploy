@@ -4,7 +4,7 @@ image:
   tag: v3.0.0
   pullPolicy: IfNotPresent
 container:
-  port: 80
+  port: 5000
 route:
   host: flashcards.darwin-labs.org
   path: /
