@@ -1,7 +1,7 @@
 name: flashcards
 image:
   repository: ghcr.io/branchenprimus/flashcards
-  tag: v1.0.0
+  tag: v2.0.0
   pullPolicy: IfNotPresent
 container:
   port: 80
