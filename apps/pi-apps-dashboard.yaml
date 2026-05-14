@@ -1,0 +1,23 @@
+name: pi-apps-dashboard
+image:
+  repository: ghcr.io/branchenprimus/pi-apps-dashboard
+  pullSecrets:
+    - name: ghcr-pull
+  tag: v0.1.0
+  pullPolicy: IfNotPresent
+container:
+  port: 8000
+route:
+  host: pi-apps-dashboard.darwin-labs.org
+  path: /
+access:
+  enabled: true
+resources:
+  requests:
+    cpu: 25m
+    memory: 32Mi
+  limits:
+    cpu: 250m
+    memory: 128Mi
+env: []
+namespace: apps
