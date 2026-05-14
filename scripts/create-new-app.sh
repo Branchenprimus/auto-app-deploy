@@ -79,6 +79,98 @@ resolve_app_path() {
   fi
 }
 
+app_yaml_container_port() {
+  local app_yaml="$1"
+
+  [[ -f "$app_yaml" ]] || return 0
+
+  awk -F ': *' '
+    $1 == "container" {
+      in_container = 1
+      next
+    }
+    in_container && $0 !~ /^  / {
+      in_container = 0
+    }
+    in_container && $1 == "  port" {
+      print $2
+      exit
+    }
+  ' "$app_yaml"
+}
+
+dockerfile_exposed_port() {
+  local dockerfile="$1"
+
+  [[ -f "$dockerfile" ]] || return 0
+
+  awk '
+    /^[[:space:]]*#/ {
+      next
+    }
+    toupper($1) == "EXPOSE" {
+      for (i = 2; i <= NF; i++) {
+        port = $i
+        sub(/\/.*/, "", port)
+        if (port ~ /^[0-9]+$/) {
+          print port
+          exit
+        }
+      }
+    }
+  ' "$dockerfile"
+}
+
+dockerfile_env_port() {
+  local dockerfile="$1"
+
+  [[ -f "$dockerfile" ]] || return 0
+
+  awk '
+    /^[[:space:]]*#/ {
+      next
+    }
+    toupper($1) == "ENV" {
+      for (i = 2; i <= NF; i++) {
+        if ($i ~ /^PORT=[0-9]+$/) {
+          sub(/^PORT=/, "", $i)
+          print $i
+          exit
+        }
+        if ($i == "PORT" && (i + 1) <= NF && $(i + 1) ~ /^[0-9]+$/) {
+          print $(i + 1)
+          exit
+        }
+      }
+    }
+  ' "$dockerfile"
+}
+
+detect_container_port_default() {
+  local app_path="$1"
+  local detected=""
+
+  detected="$(app_yaml_container_port "$app_path/app.yaml")"
+  if [[ -n "$detected" ]]; then
+    printf '%s' "$detected"
+    return
+  fi
+
+  detected="$(dockerfile_exposed_port "$app_path/Dockerfile")"
+  if [[ -n "$detected" ]]; then
+    printf '%s' "$detected"
+    return
+  fi
+
+  detected="$(dockerfile_env_port "$app_path/Dockerfile")"
+  if [[ -n "$detected" ]]; then
+    printf '%s' "$detected"
+    return
+  fi
+
+  printf '80'
+}
+
 write_app_yaml() {
   local target="$1"
 
@@ -251,6 +343,7 @@ main() {
   local detected_repo
   local owner_default
   local repo_default
+  local container_port_default
   detected_name="$(slugify "$(basename "$APP_PATH")")"
   owner_default="$DEFAULT_OWNER"
   repo_default="$detected_name"
@@ -268,7 +361,9 @@ main() {
   IMAGE_REPO_NAME="$(slugify "$REPO_NAME")"
   APP_NAME="$(prompt 'App name' "$(slugify "$REPO_NAME")")"
   HOSTNAME="$(prompt 'App hostname' "${APP_NAME}.${DEFAULT_DOMAIN}")"
-  CONTAINER_PORT="$(prompt 'Container HTTP port' '80')"
+  container_port_default="$(detect_container_port_default "$APP_PATH")"
+  CONTAINER_PORT="$(prompt 'Container HTTP port' "$container_port_default")"
+  [[ "$CONTAINER_PORT" =~ ^[0-9]+$ ]] || die "Container HTTP port must be numeric."
   ACCESS_ENABLED="true"
   if ! prompt_yes_no 'Protect with Cloudflare Access?' 'y'; then
     ACCESS_ENABLED="false"

@@ -230,12 +230,63 @@ target_url_from_app_yaml() {
 print_argocd_live_updates() {
   local app_name="$1"
   local timeout_seconds="$2"
+  local expected_image="${3:-}"
   local end_time
   local sync_status=""
   local health_status=""
   local revision=""
+  local app_json=""
 
   [[ -n "$app_name" ]] || return 0
+
+  if command -v kubectl >/dev/null 2>&1 \
+    && kubectl get application "$app_name" -n argocd >/dev/null 2>&1; then
+    printf '\nArgoCD live status:\n'
+    end_time="$(($(date +%s) + timeout_seconds))"
+
+    while [[ "$(date +%s)" -le "$end_time" ]]; do
+      app_json="$(kubectl get application "$app_name" -n argocd -o json 2>/dev/null || true)"
+      sync_status="$(
+        kubectl get application "$app_name" -n argocd \
+          -o jsonpath='{.status.sync.status}' 2>/dev/null || true
+      )"
+      health_status="$(
+        kubectl get application "$app_name" -n argocd \
+          -o jsonpath='{.status.health.status}' 2>/dev/null || true
+      )"
+      revision="$(
+        kubectl get application "$app_name" -n argocd \
+          -o jsonpath='{.status.sync.revision}' 2>/dev/null || true
+      )"
+
+      if [[ -n "$expected_image" ]] && printf '%s' "$app_json" | grep -Fq "$expected_image"; then
+        printf '  ArgoCD app %s: sync=%s health=%s revision=%s image=%s\n' \
+          "$app_name" \
+          "${sync_status:-unknown}" \
+          "${health_status:-unknown}" \
+          "${revision:-unknown}" \
+          "$expected_image"
+      else
+        printf '  ArgoCD app %s: sync=%s health=%s revision=%s image=%s\n' \
+          "$app_name" \
+          "${sync_status:-unknown}" \
+          "${health_status:-unknown}" \
+          "${revision:-unknown}" \
+          "waiting"
+      fi
+
+      if [[ "$sync_status" == "Synced" && "$health_status" == "Healthy" ]]; then
+        if [[ -z "$expected_image" ]] || printf '%s' "$app_json" | grep -Fq "$expected_image"; then
+          return 0
+        fi
+      fi
+
+      sleep 10
+    done
+
+    printf '  ArgoCD status watch timed out after %ss.\n' "$timeout_seconds"
+    return 0
+  fi
 
   if command -v argocd >/dev/null 2>&1; then
     printf '\nArgoCD live status:\n'
@@ -243,41 +294,6 @@ print_argocd_live_updates() {
     argocd app get "$app_name" || true
     return 0
   fi
-
-  command -v kubectl >/dev/null 2>&1 || return 0
-  kubectl get application "$app_name" -n argocd >/dev/null 2>&1 || return 0
-
-  printf '\nArgoCD live status:\n'
-  end_time="$(($(date +%s) + timeout_seconds))"
-
-  while [[ "$(date +%s)" -le "$end_time" ]]; do
-    sync_status="$(
-      kubectl get application "$app_name" -n argocd \
-        -o jsonpath='{.status.sync.status}' 2>/dev/null || true
-    )"
-    health_status="$(
-      kubectl get application "$app_name" -n argocd \
-        -o jsonpath='{.status.health.status}' 2>/dev/null || true
-    )"
-    revision="$(
-      kubectl get application "$app_name" -n argocd \
-        -o jsonpath='{.status.sync.revision}' 2>/dev/null || true
-    )"
-
-    printf '  ArgoCD app %s: sync=%s health=%s revision=%s\n' \
-      "$app_name" \
-      "${sync_status:-unknown}" \
-      "${health_status:-unknown}" \
-      "${revision:-unknown}"
-
-    if [[ "$sync_status" == "Synced" && "$health_status" == "Healthy" ]]; then
-      return 0
-    fi
-
-    sleep 10
-  done
-
-  printf '  ArgoCD status watch timed out after %ss.\n' "$timeout_seconds"
 }
 
 print_kubernetes_live_updates() {
@@ -351,6 +367,8 @@ print_live_deploy_updates() {
   local release_tag="$2"
   local timeout_seconds="${AUTO_APP_DEPLOY_LIVE_TIMEOUT:-$DEFAULT_LIVE_TIMEOUT_SECONDS}"
   local app_name
+  local image_repo
+  local expected_image=""
 
   [[ "$timeout_seconds" =~ ^[0-9]+$ ]] || timeout_seconds="$DEFAULT_LIVE_TIMEOUT_SECONDS"
 
@@ -360,7 +378,12 @@ print_live_deploy_updates() {
   fi
 
   app_name="$(app_yaml_value "$repo_path" "name")"
-  print_argocd_live_updates "$app_name" "$timeout_seconds"
+  image_repo="$(app_yaml_value "$repo_path" "image.repository")"
+  if [[ -n "$image_repo" ]]; then
+    expected_image="${image_repo}:${release_tag}"
+  fi
+
+  print_argocd_live_updates "$app_name" "$timeout_seconds" "$expected_image"
   print_kubernetes_live_updates "$repo_path" "$release_tag" "$timeout_seconds"
 }
 
