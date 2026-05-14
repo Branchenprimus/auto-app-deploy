@@ -10,6 +10,7 @@ DEFAULT_GITOPS_REPO="Branchenprimus/auto-app-deploy"
 DEFAULT_GITOPS_BRANCH="main"
 DEFAULT_KEEPASS_ENTRY="GITOPS_TOKEN"
 DEFAULT_PROJECTS_DIR="/home/jan/projects"
+DEFAULT_BOILERPLATE_PORT="8080"
 
 # Adjust these defaults if your KeePassXC database or token entry lives elsewhere.
 # If the database is missing, run: scripts/setup-gitops-token-store.sh
@@ -171,6 +172,34 @@ detect_container_port_default() {
   printf '80'
 }
 
+write_boilerplate_dockerfile() {
+  local target="$1"
+
+  cat > "$target" <<EOF
+FROM python:3.12-slim
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1 \\
+    PORT=${DEFAULT_BOILERPLATE_PORT}
+
+RUN printf '%s\\n' \\
+  '<!doctype html>' \\
+  '<html lang="en">' \\
+  '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>New App</title></head>' \\
+  '<body><main style="font-family: system-ui, sans-serif; max-width: 720px; margin: 4rem auto; padding: 0 1rem;">' \\
+  '<h1>It works.</h1>' \\
+  '<p>Replace this boilerplate with your app, then create a release tag.</p>' \\
+  '</main></body>' \\
+  '</html>' \\
+  > index.html
+
+EXPOSE ${DEFAULT_BOILERPLATE_PORT}
+
+CMD ["sh", "-c", "python -m http.server \${PORT} --bind 0.0.0.0"]
+EOF
+}
+
 write_app_yaml() {
   local target="$1"
 
@@ -324,13 +353,19 @@ main() {
   printf 'Enter a directory name like "my-app" or an absolute path.\n'
   APP_PATH_INPUT="$(prompt 'Local app path')"
   APP_PATH="$(resolve_app_path "$APP_PATH_INPUT")"
+  APP_DIR_CREATED="false"
 
   if [[ -d "$APP_PATH" ]]; then
     printf 'Using existing app directory: %s\n' "$APP_PATH"
+    if [[ -z "$(find "$APP_PATH" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
+      APP_DIR_CREATED="true"
+      printf 'Existing app directory is empty; treating it as a new app scaffold.\n'
+    fi
   else
     printf 'App directory does not exist: %s\n' "$APP_PATH"
     if prompt_yes_no 'Create it as a new app directory?' 'y'; then
       mkdir -p "$APP_PATH"
+      APP_DIR_CREATED="true"
       printf 'Created app directory: %s\n' "$APP_PATH"
     else
       die "Directory does not exist: $APP_PATH"
@@ -361,8 +396,19 @@ main() {
   IMAGE_REPO_NAME="$(slugify "$REPO_NAME")"
   APP_NAME="$(prompt 'App name' "$(slugify "$REPO_NAME")")"
   HOSTNAME="$(prompt 'App hostname' "${APP_NAME}.${DEFAULT_DOMAIN}")"
+
+  if [[ ! -f "$APP_PATH/Dockerfile" ]]; then
+    write_boilerplate_dockerfile "$APP_PATH/Dockerfile"
+    printf 'Created boilerplate Dockerfile: %s\n' "$APP_PATH/Dockerfile"
+  fi
+
   container_port_default="$(detect_container_port_default "$APP_PATH")"
-  CONTAINER_PORT="$(prompt 'Container HTTP port' "$container_port_default")"
+  if [[ "$APP_DIR_CREATED" == "true" ]]; then
+    CONTAINER_PORT="$container_port_default"
+    printf 'Container HTTP port: %s\n' "$CONTAINER_PORT"
+  else
+    CONTAINER_PORT="$(prompt 'Container HTTP port' "$container_port_default")"
+  fi
   [[ "$CONTAINER_PORT" =~ ^[0-9]+$ ]] || die "Container HTTP port must be numeric."
   ACCESS_ENABLED="true"
   if ! prompt_yes_no 'Protect with Cloudflare Access?' 'y'; then
@@ -386,12 +432,6 @@ main() {
   if [[ ! -f "$KEEPASS_DB" ]]; then
     die "KeePassXC database is missing. Run: $PLATFORM_DIR/scripts/setup-gitops-token-store.sh"
   fi
-
-  [[ -f "$APP_PATH/Dockerfile" ]] || {
-    if ! prompt_yes_no 'Dockerfile is missing. Continue anyway?' 'n'; then
-      die "Add a Dockerfile first."
-    fi
-  }
 
   local app_yaml="$APP_PATH/app.yaml"
   if [[ -f "$app_yaml" ]]; then
