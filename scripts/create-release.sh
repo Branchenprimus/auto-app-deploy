@@ -54,6 +54,75 @@ resolve_repo_path() {
   fi
 }
 
+discover_git_repos() {
+  find "$DEFAULT_PROJECTS_DIR" -maxdepth 4 -type d -name .git -prune -print 2>/dev/null \
+    | while IFS= read -r git_dir; do
+        local repo_path
+        local origin
+
+        repo_path="$(dirname "$git_dir")"
+        origin="$(git -C "$repo_path" remote get-url origin 2>/dev/null || true)"
+        case "$origin" in
+          git@github.com:*|ssh://git@github.com/*|https://github.com/*|http://github.com/*)
+            printf '%s\n' "$repo_path"
+            ;;
+        esac
+      done \
+    | sort
+}
+
+repo_display_name() {
+  local repo_path="$1"
+  local origin
+  local rel_path
+
+  rel_path="${repo_path#$DEFAULT_PROJECTS_DIR/}"
+  origin="$(git -C "$repo_path" remote get-url origin 2>/dev/null || true)"
+
+  if [[ -n "$origin" ]]; then
+    printf '%s  (%s)' "$rel_path" "$origin"
+  else
+    printf '%s  (no origin)' "$rel_path"
+  fi
+}
+
+select_repo_path() {
+  local repos=()
+  local repo_path
+  local choice
+  local index
+
+  while IFS= read -r repo_path; do
+    [[ -n "$repo_path" ]] || continue
+    repos+=("$repo_path")
+  done < <(discover_git_repos)
+
+  if [[ "${#repos[@]}" -eq 0 ]]; then
+    printf 'No GitHub-backed repositories found under: %s\n' "$DEFAULT_PROJECTS_DIR" >&2
+    printf '%s' "$(resolve_repo_path "$(prompt 'Local repo path')")"
+    return
+  fi
+
+  printf 'GitHub-backed repositories under %s:\n' "$DEFAULT_PROJECTS_DIR" >&2
+  for index in "${!repos[@]}"; do
+    printf '  %2d) %s\n' "$((index + 1))" "$(repo_display_name "${repos[$index]}")" >&2
+  done
+  printf '   m) Enter a path manually\n' >&2
+
+  read -r -p 'Select repo [1]: ' choice
+  choice="${choice:-1}"
+
+  if [[ "$choice" == "m" || "$choice" == "M" ]]; then
+    printf '%s' "$(resolve_repo_path "$(prompt 'Local repo path')")"
+    return
+  fi
+
+  [[ "$choice" =~ ^[0-9]+$ ]] || die "Selection must be a number or m."
+  [[ "$choice" -ge 1 && "$choice" -le "${#repos[@]}" ]] || die "Selection out of range: $choice"
+
+  printf '%s' "${repos[$((choice - 1))]}"
+}
+
 github_repo_from_origin() {
   local repo_path="$1"
   local url
@@ -465,7 +534,6 @@ main() {
   gh auth status >/dev/null 2>&1 || die "gh is not authenticated. Run: gh auth login"
 
   printf 'Release app repositories are usually under: %s\n' "$DEFAULT_PROJECTS_DIR"
-  printf 'Enter a directory name like "Flashcards" or an absolute path.\n'
 
   local repo_path_input
   local repo_path
@@ -478,7 +546,7 @@ main() {
   local watch_status
   local logs_status
 
-  repo_path_input="$(prompt 'Local repo path')"
+  repo_path_input="$(select_repo_path)"
   repo_path="$(resolve_repo_path "$repo_path_input")"
   [[ -d "$repo_path" ]] || die "Repository path does not exist: $repo_path"
   repo_path="$(realpath "$repo_path")"

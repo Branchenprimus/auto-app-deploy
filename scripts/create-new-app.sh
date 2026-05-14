@@ -300,6 +300,70 @@ http://localhost:${CONTAINER_PORT}
 EOF
 }
 
+write_gitignore() {
+  local target="$1"
+
+  cat > "$target" <<'EOF'
+# Local agent guidance
+AGENT_INSTRUCTIONS.md
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Editor and IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.python-version
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# JavaScript and frontend tooling
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist/
+build/
+coverage/
+
+# Logs and local runtime data
+*.log
+logs/
+*.sqlite
+*.sqlite3
+*.db
+
+# Docker and local build output
+.docker/
+tmp/
+temp/
+EOF
+}
+
 write_app_yaml() {
   local target="$1"
 
@@ -550,13 +614,21 @@ main() {
     printf 'Created agent instructions: %s\n' "$agent_instructions"
   fi
 
+  local gitignore="$APP_PATH/.gitignore"
+  if [[ -f "$gitignore" ]]; then
+    printf '.gitignore already exists.\n'
+  else
+    write_gitignore "$gitignore"
+    printf 'Created git ignore file: %s\n' "$gitignore"
+  fi
+
   copy_release_workflow
 
   if [[ ! -d "$APP_PATH/.git" ]]; then
     git -C "$APP_PATH" init
   fi
 
-  git -C "$APP_PATH" add app.yaml AGENT_INSTRUCTIONS.md .github/workflows/release.yaml
+  git -C "$APP_PATH" add app.yaml .gitignore .github/workflows/release.yaml
   if [[ -f "$APP_PATH/Dockerfile" ]]; then
     git -C "$APP_PATH" add Dockerfile
   fi
