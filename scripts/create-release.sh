@@ -2,6 +2,7 @@
 set -euo pipefail
 
 DEFAULT_PROJECTS_DIR="/home/jan/projects"
+DEFAULT_GITOPS_REPO_PATH="/home/jan/projects/auto-app-deploy"
 
 die() {
   printf 'Error: %s\n' "$*" >&2
@@ -241,6 +242,7 @@ print_release_summary() {
   local access_enabled
   local branch
   local run_state
+  local gitops_note
 
   app_name="$(app_yaml_value "$repo_path" "name")"
   image_repo="$(app_yaml_value "$repo_path" "image.repository")"
@@ -253,6 +255,13 @@ print_release_summary() {
       --json status,conclusion \
       --jq 'if .conclusion == "" or .conclusion == null then .status else .conclusion end'
   )"
+
+  if [[ -d "$DEFAULT_GITOPS_REPO_PATH/.git" ]]; then
+    gitops_note="$(
+      git -C "$DEFAULT_GITOPS_REPO_PATH" status --short --branch 2>/dev/null \
+        | sed -n '1p'
+    )"
+  fi
 
   if [[ -n "$image_repo" ]]; then
     image_ref="${image_repo}:${release_tag}"
@@ -270,6 +279,7 @@ print_release_summary() {
   [[ -n "$target_url" ]] && printf '  Target URL:      %s\n' "$target_url"
   [[ -n "$access_enabled" ]] && printf '  Access enabled:  %s\n' "$access_enabled"
   printf '  Actions run:     %s\n' "$run_url"
+  [[ -n "$gitops_note" ]] && printf '  GitOps checkout: %s\n' "$gitops_note"
 
   if [[ "$watch_status" -ne 0 ]]; then
     printf '  Note:            Pipeline finished with a non-success status.\n'
@@ -277,6 +287,9 @@ print_release_summary() {
     printf '  Note:            Pipeline succeeded, but log printing returned an error.\n'
   else
     printf '  Next:            ArgoCD should sync the updated GitOps app values.\n'
+    if [[ "$gitops_note" == *"behind"* || "$gitops_note" == *"ahead"* ]]; then
+      printf '  Local sync:      cd %s && git pull --rebase --tags origin main\n' "$DEFAULT_GITOPS_REPO_PATH"
+    fi
   fi
 }
 
