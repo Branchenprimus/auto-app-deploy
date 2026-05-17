@@ -24,3 +24,11 @@ resources:
     memory: 512Mi
 
 env: []
+
+persistence:
+  enabled: false
+  mountPath: /data
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  storageClassName: ""

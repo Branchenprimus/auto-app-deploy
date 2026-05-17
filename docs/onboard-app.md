@@ -104,6 +104,17 @@ resources:
 env: []
 ```
 
+Falls die App lokale Daten behalten muss, z. B. SQLite oder eine eingebettete Datenbank:
+
+```yaml
+persistence:
+  enabled: true
+  mountPath: /app/data
+  size: 2Gi
+```
+
+`mountPath` muss zu dem Pfad passen, in den die App im Container schreibt.
+
 Nur wenn die App oeffentlich sein soll:
 
 ```yaml

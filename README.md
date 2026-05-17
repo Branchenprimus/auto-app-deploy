@@ -42,6 +42,16 @@ See [app-template/app.yaml](/home/jan/projects/auto-app-deploy/app-template/app.
 
 New apps should follow [docs/onboard-app.md](/home/jan/projects/auto-app-deploy/docs/onboard-app.md).
 
+Apps that need local runtime storage can enable a PersistentVolumeClaim in
+`app.yaml`:
+
+```yaml
+persistence:
+  enabled: true
+  mountPath: /app/data
+  size: 2Gi
+```
+
 ## Cloudflare Access
 
 Apps are protected by Cloudflare Zero Trust Access by default through Terraform.

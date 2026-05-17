@@ -24,3 +24,8 @@ resources:
 env:
   - name: NODE_ENV
     value: production
+
+persistence:
+  enabled: false
+  mountPath: /data
+  size: 1Gi
