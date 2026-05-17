@@ -34,7 +34,7 @@ prompt_yes_no() {
   local default="${2:-y}"
   local value
 
-  read -r -p "$label [$default]: " value
+  read -r -p "$label [y/n, default: $default]: " value
   value="${value:-$default}"
 
   case "$value" in
