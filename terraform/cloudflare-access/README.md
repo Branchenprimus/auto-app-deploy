@@ -1,6 +1,10 @@
 # Cloudflare Access Terraform
 
-This Terraform stack creates one Cloudflare Zero Trust Access Application for each app in `../../apps/*.yaml` where Access is enabled.
+This Terraform stack creates one Cloudflare Zero Trust Access Application for each app YAML mirrored into `apps/*.yaml` where Access is enabled.
+
+The GitHub Actions workflow copies root-level `../../apps/*.yaml` into this
+directory before running Terraform so HCP Terraform receives the app
+definitions with the rest of the configuration.
 
 Access is enabled by default:
 
@@ -23,6 +27,8 @@ Create a Cloudflare API token with:
 ```text
 Account -> Access: Apps and Policies -> Edit
 Account -> Access: Apps and Policies -> Read
+Account -> Access: Organizations, Identity Providers, and Groups -> Edit
+Account -> Access: Organizations, Identity Providers, and Groups -> Read
 ```
 
 Export it locally:
@@ -43,10 +49,39 @@ Set:
 
 ```text
 cloudflare_account_id
-allowed_idp_ids
+allowed_idp_ids or managed Google identity provider variables
 ```
 
-The `allowed_idp_ids` list should contain your Google login method ID from Cloudflare Zero Trust.
+### Existing Google Login Method
+
+To reuse an existing Google login method from Cloudflare Zero Trust, set
+`allowed_idp_ids` to the login method ID:
+
+```hcl
+allowed_idp_ids = ["<google idp id>"]
+```
+
+### Terraform-Managed Google Login Method
+
+To let Terraform create the Cloudflare Zero Trust Google login method, set:
+
+```hcl
+allowed_idp_ids                  = []
+manage_google_identity_provider  = true
+google_identity_provider_type    = "google"
+google_oauth_client_id           = "<google oauth client id>"
+google_oauth_client_secret       = "<google oauth client secret>"
+```
+
+For Google Workspace, use:
+
+```hcl
+google_identity_provider_type = "google-apps"
+google_workspace_domain       = "example.com"
+```
+
+The Google OAuth client still has to exist in Google Cloud. Add Cloudflare's
+Access callback URL as an authorized redirect URI in that Google OAuth client.
 
 For GitHub Actions, set one repository secret so the workflow can start Terraform
 Cloud runs:
@@ -60,13 +95,31 @@ Set the Cloudflare values as Terraform Cloud workspace variables for the
 
 ```text
 cloudflare_account_id=<account id>
-allowed_idp_ids=["<google idp id>"]
 CLOUDFLARE_API_TOKEN=<token with Access Apps and Policies edit access>
+```
+
+Then choose one identity provider mode:
+
+```text
+allowed_idp_ids=["<google idp id>"]
+```
+
+or:
+
+```text
+allowed_idp_ids=[]
+manage_google_identity_provider=true
+google_identity_provider_type=google
+google_oauth_client_id=<google oauth client id>
+google_oauth_client_secret=<sensitive google oauth client secret>
 ```
 
 ## Run
 
 ```bash
+rm -rf apps
+mkdir -p apps
+cp ../../apps/*.yaml apps/
 terraform init
 terraform plan
 terraform apply

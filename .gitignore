@@ -1,7 +1,57 @@
-.terraform/
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Editor and IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment and local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+secrets/
+*.kdbx
+*.keyx
+
+# Terraform local state, variables, and crash logs
+**/.terraform/
 *.tfstate
 *.tfstate.*
 terraform.tfvars
 *.auto.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 crash.log
 crash.*.log
+
+# HCP Terraform upload mirror generated from root apps/*.yaml
+terraform/cloudflare-access/apps/*.yaml
+!terraform/cloudflare-access/apps/.gitkeep
+
+# Logs and local runtime output
+*.log
+logs/
+tmp/
+temp/
+
+# Language and tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+node_modules/
+dist/
+build/
+coverage/
+.cache/

@@ -1,9 +1,20 @@
 cloudflare_account_id = "replace-with-cloudflare-account-id"
 
-# Zero Trust -> Settings -> Authentication -> Login methods -> Google -> ID
+# Option A: reuse an existing Cloudflare Zero Trust Google login method.
 allowed_idp_ids = [
   "replace-with-google-idp-id"
 ]
+
+# Option B: let Terraform create the Cloudflare Zero Trust Google login method.
+# Keep allowed_idp_ids empty when this is true.
+# manage_google_identity_provider = true
+# google_identity_provider_type   = "google"
+# google_oauth_client_id          = "replace-with-google-oauth-client-id"
+# google_oauth_client_secret      = "replace-with-google-oauth-client-secret"
+#
+# For Google Workspace, use:
+# google_identity_provider_type = "google-apps"
+# google_workspace_domain      = "example.com"
 
 default_access_enabled = true
 default_session_duration = "24h"

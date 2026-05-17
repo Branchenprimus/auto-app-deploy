@@ -1,5 +1,5 @@
 locals {
-  app_dir   = "${path.module}/../../apps"
+  app_dir   = "${path.module}/apps"
   app_files = fileset(local.app_dir, "*.yaml")
 
   apps = {
@@ -17,6 +17,31 @@ locals {
     for key, app in local.protected_apps :
     key => try(app.route.path, "/") == "/" ? app.route.host : "${app.route.host}${app.route.path}"
   }
+
+  effective_allowed_idp_ids = var.manage_google_identity_provider ? [
+    cloudflare_zero_trust_access_identity_provider.google[0].id
+  ] : var.allowed_idp_ids
+}
+
+resource "cloudflare_zero_trust_access_identity_provider" "google" {
+  count = var.manage_google_identity_provider ? 1 : 0
+
+  account_id = var.cloudflare_account_id
+  name       = var.google_identity_provider_name
+  type       = var.google_identity_provider_type
+
+  config = {
+    client_id     = var.google_oauth_client_id
+    client_secret = var.google_oauth_client_secret
+    apps_domain   = var.google_workspace_domain
+  }
+
+  lifecycle {
+    precondition {
+      condition     = var.google_oauth_client_id != null && var.google_oauth_client_secret != null
+      error_message = "Set google_oauth_client_id and google_oauth_client_secret when manage_google_identity_provider is true."
+    }
+  }
 }
 
 resource "cloudflare_zero_trust_access_application" "app" {
@@ -27,7 +52,7 @@ resource "cloudflare_zero_trust_access_application" "app" {
   domain     = local.app_domains[each.key]
   type       = "self_hosted"
 
-  allowed_idps              = try(each.value.access.allowed_idp_ids, var.allowed_idp_ids)
+  allowed_idps              = try(each.value.access.allowed_idp_ids, local.effective_allowed_idp_ids)
   app_launcher_visible      = try(each.value.access.app_launcher_visible, false)
   auto_redirect_to_identity = try(each.value.access.auto_redirect_to_identity, var.auto_redirect_to_identity)
   session_duration          = try(each.value.access.session_duration, var.default_session_duration)
@@ -41,4 +66,11 @@ resource "cloudflare_zero_trust_access_application" "app" {
       everyone = {}
     }]
   }]
+
+  lifecycle {
+    precondition {
+      condition     = length(try(each.value.access.allowed_idp_ids, local.effective_allowed_idp_ids)) > 0
+      error_message = "No identity provider IDs configured. Set allowed_idp_ids or enable manage_google_identity_provider."
+    }
+  }
 }

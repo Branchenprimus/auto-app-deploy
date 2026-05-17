@@ -4,13 +4,9 @@ variable "cloudflare_account_id" {
 }
 
 variable "allowed_idp_ids" {
-  description = "Cloudflare Access identity provider IDs allowed for protected apps. Put your Google IdP ID here."
+  description = "Existing Cloudflare Access identity provider IDs allowed for protected apps. Leave empty when manage_google_identity_provider is true."
   type        = list(string)
-
-  validation {
-    condition     = length(var.allowed_idp_ids) > 0
-    error_message = "At least one identity provider ID is required. Add your Google IdP ID."
-  }
+  default     = []
 }
 
 variable "default_access_enabled" {
@@ -29,4 +25,46 @@ variable "auto_redirect_to_identity" {
   description = "Redirect directly to the configured IdP when possible."
   type        = bool
   default     = true
+}
+
+variable "manage_google_identity_provider" {
+  description = "Create and manage the Cloudflare Access Google identity provider with Terraform."
+  type        = bool
+  default     = false
+}
+
+variable "google_identity_provider_name" {
+  description = "Display name for the managed Google identity provider."
+  type        = string
+  default     = "Google"
+}
+
+variable "google_identity_provider_type" {
+  description = "Cloudflare Access Google provider type. Use google for consumer Google accounts or google-apps for Google Workspace."
+  type        = string
+  default     = "google"
+
+  validation {
+    condition     = contains(["google", "google-apps"], var.google_identity_provider_type)
+    error_message = "google_identity_provider_type must be either google or google-apps."
+  }
+}
+
+variable "google_oauth_client_id" {
+  description = "Google OAuth Client ID used by the managed Cloudflare Access Google identity provider."
+  type        = string
+  default     = null
+}
+
+variable "google_oauth_client_secret" {
+  description = "Google OAuth Client Secret used by the managed Cloudflare Access Google identity provider."
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "google_workspace_domain" {
+  description = "Google Workspace domain for google-apps identity providers. Leave null for regular google providers."
+  type        = string
+  default     = null
 }

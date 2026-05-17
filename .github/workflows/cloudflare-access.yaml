@@ -34,6 +34,13 @@ jobs:
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
+      - name: Sync app definitions
+        run: |
+          rm -rf terraform/cloudflare-access/apps
+          mkdir -p terraform/cloudflare-access/apps
+          cp apps/*.yaml terraform/cloudflare-access/apps/
+        working-directory: .
+
       - name: Terraform init
         run: terraform init
 
