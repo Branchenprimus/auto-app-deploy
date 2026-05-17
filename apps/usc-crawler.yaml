@@ -1,0 +1,37 @@
+name: usc-crawler
+image:
+  repository: ghcr.io/branchenprimus/usc-crawler
+  pullSecrets:
+    - name: ghcr-pull
+  tag: v1.0.0
+  pullPolicy: IfNotPresent
+container:
+  port: 8080
+route:
+  host: usc-crawler.darwin-labs.org
+  path: /
+access:
+  enabled: true
+resources:
+  requests:
+    cpu: 75m
+    memory: 128Mi
+  limits:
+    cpu: 750m
+    memory: 512Mi
+env:
+  - name: AUTOMATION_ENABLED
+    value: "true"
+  - name: DEFAULT_CRAWL_CITY
+    value: Köln
+  - name: DEFAULT_CRAWL_CONTRACT
+    value: m
+  - name: DEFAULT_CRAWL_DAYS
+    value: "14"
+  - name: DAILY_UPDATE_HOUR
+    value: "3"
+persistence:
+  enabled: true
+  mountPath: /app/data
+  size: 2Gi
+namespace: apps
