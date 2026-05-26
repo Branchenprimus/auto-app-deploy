@@ -25,6 +25,8 @@ resources:
 
 env: []
 
+extraSecretMounts: []
+
 persistence:
   enabled: false
   mountPath: /data
