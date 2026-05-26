@@ -1,0 +1,60 @@
+name: gh-issue-pipeline
+image:
+  repository: ghcr.io/branchenprimus/gh-issue-pipeline
+  pullSecrets:
+    - name: ghcr-pull
+  tag: v1.0.0
+  pullPolicy: IfNotPresent
+container:
+  port: 8787
+route:
+  host: gh-issue-pipeline.darwin-labs.org
+  path: /
+# GitHub webhooks cannot complete a Cloudflare Access login flow.
+# The webhook endpoint is protected by GitHub HMAC signature verification.
+access:
+  enabled: false
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+env:
+  - name: GH_ISSUE_PIPELINE_WEBHOOK_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: gh-issue-pipeline
+        key: webhook-secret
+  - name: GH_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: gh-issue-pipeline
+        key: github-token
+  - name: GH_ISSUE_PIPELINE_PROJECTS_DIR
+    value: /workspace/projects
+  - name: GH_ISSUE_PIPELINE_STATE_DIR
+    value: /workspace/state
+  - name: GH_ISSUE_PIPELINE_GITOPS_REPO
+    value: Branchenprimus/auto-app-deploy
+  - name: GH_ISSUE_PIPELINE_GITOPS_DIR
+    value: /workspace/auto-app-deploy
+  - name: GH_ISSUE_PIPELINE_APPS_DIR
+    value: /workspace/auto-app-deploy/apps
+  - name: GH_ISSUE_PIPELINE_RELEASE_COMMAND
+    value: /workspace/auto-app-deploy/scripts/create-release.sh
+  - name: GH_ISSUE_PIPELINE_CLONE_MISSING_REPOS
+    value: "true"
+  - name: CODEX_HOME
+    value: /codex-home
+extraSecretMounts:
+  - name: codex-auth
+    secretName: codex-auth
+    mountPath: /codex-home
+    defaultMode: 0400
+persistence:
+  enabled: true
+  mountPath: /workspace
+  size: 20Gi
+namespace: apps
