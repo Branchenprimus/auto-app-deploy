@@ -47,11 +47,17 @@ env:
   - name: GH_ISSUE_PIPELINE_CLONE_MISSING_REPOS
     value: "true"
   - name: CODEX_HOME
-    value: /codex-home
+    value: /workspace/codex-home
 extraSecretMounts:
-  - name: codex-auth
+  - name: codex-auth-json
     secretName: codex-auth
-    mountPath: /codex-home
+    mountPath: /workspace/codex-home/auth.json
+    subPath: auth.json
+    defaultMode: 0400
+  - name: codex-auth-config
+    secretName: codex-auth
+    mountPath: /workspace/codex-home/config.toml
+    subPath: config.toml
     defaultMode: 0400
 persistence:
   enabled: true
