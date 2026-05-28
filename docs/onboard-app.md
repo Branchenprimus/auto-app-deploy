@@ -47,7 +47,7 @@ Gib z. B. `my-app` ein, um `/home/jan/projects/my-app` zu verwenden. Existiert d
 
 Wenn der Ordner bereits ein Git-Repo mit GitHub-`origin` ist, verwendet das Script diesen Remote als Default, z. B. `Branchenprimus/Flashcards`.
 
-Danach legt es `app.yaml` und den Release-Workflow an, erstellt das GitHub-Repo, setzt `GITOPS_TOKEN` und pusht den Branch.
+Danach legt es `app.yaml` und den Release-Workflow an, erstellt das GitHub-Repo, setzt die Issue-Pipeline-Labels `codex-auto` und `release`, setzt `GITOPS_TOKEN` und pusht den Branch.
 
 Beim Lesen des Tokens fragt KeePassXC nach dem Datenbank-Passwort. Die Eingabe ist absichtlich nicht sichtbar.
 

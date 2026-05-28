@@ -20,12 +20,19 @@ data:
     title: Darwin Labs
     target: _blank
     hideVersion: true
+    hideErrors: true
     statusStyle: dot
     layout:
+      Apps:
+        style: row
+        columns: 3
       Platform:
         style: row
         columns: 3
-      Apps:
+      Deployment:
+        style: row
+        columns: 3
+      Monitoring:
         style: row
         columns: 3
   bookmarks.yaml: |
@@ -37,59 +44,90 @@ data:
             - abbr: GIT
               href: https://github.com/Branchenprimus/auto-app-deploy
   services.yaml: |
-    - Platform:
-        - ArgoCD:
-            href: https://argocd.darwin-labs.org
-            description: GitOps deployment control plane
-            icon: argocd.png
-        - GitHub Issue Pipeline:
-            href: https://gh-issue-pipeline.darwin-labs.org/healthz
-            description: Codex issue automation webhook
-            icon: github.png
-        - Pi Apps Dashboard:
-            href: https://pi-apps-dashboard.darwin-labs.org
-            description: Raspberry Pi app dashboard
-            icon: mdi-view-dashboard
     - Apps:
         - Flashcards:
             href: https://flashcards.darwin-labs.org
+            siteMonitor: https://flashcards.darwin-labs.org
             description: Flashcard learning app
             icon: mdi-cards
         - Simple Notes:
             href: https://simple-notes.darwin-labs.org
+            siteMonitor: https://simple-notes.darwin-labs.org
             description: Notes app
             icon: mdi-note-text
         - Triathlon Race Planner:
             href: https://triathlon-race-planner.darwin-labs.org
+            siteMonitor: https://triathlon-race-planner.darwin-labs.org
             description: Race planning app
             icon: mdi-run
         - USC Crawler:
             href: https://usc-crawler.darwin-labs.org
+            siteMonitor: https://usc-crawler.darwin-labs.org
             description: USC search and crawl app
             icon: mdi-web
+        - Pi Apps Dashboard:
+            href: https://pi-apps-dashboard.darwin-labs.org
+            siteMonitor: https://pi-apps-dashboard.darwin-labs.org
+            description: Raspberry Pi app dashboard
+            icon: mdi-view-dashboard
+    - Platform:
+        - ArgoCD:
+            href: https://argocd.darwin-labs.org
+            siteMonitor: https://argocd.darwin-labs.org
+            description: GitOps deployment control plane
+            icon: argocd.png
+        - GitHub Issue Pipeline:
+            href: https://gh-issue-pipeline.darwin-labs.org/healthz
+            siteMonitor: https://gh-issue-pipeline.darwin-labs.org/healthz
+            description: Codex issue automation webhook
+            icon: github.png
+        - Homepage:
+            href: https://homepage.darwin-labs.org
+            siteMonitor: https://homepage.darwin-labs.org
+            description: Server start page and service index
+            icon: homepage.png
+    - Deployment:
+        - GitOps Repository:
+            href: https://github.com/Branchenprimus/auto-app-deploy
+            siteMonitor: https://github.com/Branchenprimus/auto-app-deploy
+            description: App manifests, Helm chart, platform config
+            icon: github.png
+        - Issue Pipeline Repository:
+            href: https://github.com/Branchenprimus/gh-issue-pipeline
+            siteMonitor: https://github.com/Branchenprimus/gh-issue-pipeline
+            description: GitHub issue automation service
+            icon: github.png
+        - GitHub Actions:
+            href: https://github.com/Branchenprimus/auto-app-deploy/actions
+            siteMonitor: https://github.com/Branchenprimus/auto-app-deploy/actions
+            description: Cloudflare Access and platform workflows
+            icon: github-actions.png
+        - GHCR Packages:
+            href: https://github.com/orgs/Branchenprimus/packages
+            siteMonitor: https://github.com/orgs/Branchenprimus/packages
+            description: Container images
+            icon: docker.png
+    - Monitoring:
+        - Grafana:
+            href: https://grafana.darwin-labs.org
+            description: Planned metrics and log dashboard
+            icon: grafana.png
+        - Loki:
+            href: https://grafana.darwin-labs.org/explore
+            description: Planned log exploration
+            icon: loki.png
+        - Cloudflare Zero Trust:
+            href: https://one.dash.cloudflare.com
+            siteMonitor: https://one.dash.cloudflare.com
+            description: Access policies and tunnel status
+            icon: cloudflare.png
   widgets.yaml: |
-    - kubernetes:
-        cluster:
-          show: true
-          cpu: true
-          memory: true
-          showLabel: true
-          label: k3s
-        nodes:
-          show: true
-          cpu: true
-          memory: true
-          showLabel: true
-    - resources:
-        backend: resources
-        expanded: true
-        cpu: true
-        memory: true
-        network: default
     - search:
         provider: duckduckgo
         target: _blank
   docker.yaml: ""
+  proxmox.yaml: ""
+  openapi.yaml: ""
   custom.css: ""
   custom.js: ""
 ---
@@ -217,6 +255,12 @@ spec:
             - mountPath: /app/config/docker.yaml
               name: homepage-config
               subPath: docker.yaml
+            - mountPath: /app/config/openapi.yaml
+              name: homepage-config
+              subPath: openapi.yaml
+            - mountPath: /app/config/proxmox.yaml
+              name: homepage-config
+              subPath: proxmox.yaml
             - mountPath: /app/config/kubernetes.yaml
               name: homepage-config
               subPath: kubernetes.yaml

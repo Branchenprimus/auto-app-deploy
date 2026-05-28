@@ -18,7 +18,7 @@ flowchart TD
 
   subgraph local["Local workstation"]
     setupToken["scripts/setup-gitops-token-store.sh<br/>stores GitOps token in KeePassXC"]
-    newApp["scripts/create-new-app.sh<br/>creates or prepares app repo<br/>writes app.yaml<br/>copies release workflow<br/>sets GitHub secret"]
+    newApp["scripts/create-new-app.sh<br/>creates or prepares app repo<br/>writes app.yaml<br/>copies release workflow<br/>sets issue labels and GitHub secret"]
     releaseScript["scripts/create-release.sh<br/>creates and pushes vX.Y.Z tag<br/>watches GitHub Actions and rollout"]
     ghcrSecret["scripts/setup-ghcr-pull-secret.sh<br/>creates Kubernetes imagePullSecret ghcr-pull"]
     keepass[("KeePassXC database<br/>~/.config/auto-app-deploy/secrets.kdbx")]

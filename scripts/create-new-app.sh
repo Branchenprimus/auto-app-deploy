@@ -12,6 +12,8 @@ DEFAULT_KEEPASS_ENTRY="GITOPS_TOKEN"
 DEFAULT_PROJECTS_DIR="/home/jan/projects"
 DEFAULT_BOILERPLATE_PORT="8080"
 DEFAULT_AGENT_INSTRUCTIONS_TEMPLATE="$PLATFORM_DIR/app-template/AGENT_INSTRUCTIONS.md"
+ISSUE_PIPELINE_AUTOMATION_LABEL="codex-auto"
+ISSUE_PIPELINE_RELEASE_LABEL="release"
 
 # Adjust these defaults if your KeePassXC database or token entry lives elsewhere.
 # If the database is missing, run: scripts/setup-gitops-token-store.sh
@@ -411,6 +413,36 @@ ensure_repo() {
   fi
 }
 
+ensure_repo_label() {
+  local repo="$1"
+  local name="$2"
+  local color="$3"
+  local description="$4"
+
+  if gh label view "$name" --repo "$repo" >/dev/null 2>&1; then
+    gh label edit "$name" --repo "$repo" --color "$color" --description "$description"
+    printf 'Updated GitHub label on %s: %s\n' "$repo" "$name"
+  else
+    gh label create "$name" --repo "$repo" --color "$color" --description "$description"
+    printf 'Created GitHub label on %s: %s\n' "$repo" "$name"
+  fi
+}
+
+ensure_issue_pipeline_labels() {
+  local repo="$1"
+
+  ensure_repo_label \
+    "$repo" \
+    "$ISSUE_PIPELINE_AUTOMATION_LABEL" \
+    "5319e7" \
+    "Run the GitHub issue Codex automation pipeline"
+  ensure_repo_label \
+    "$repo" \
+    "$ISSUE_PIPELINE_RELEASE_LABEL" \
+    "0e8a16" \
+    "Release bot-created issue pipeline changes"
+}
+
 push_current_branch() {
   local branch
   branch="$(git -C "$APP_PATH" branch --show-current)"
@@ -565,6 +597,7 @@ main() {
 
   local repo="${OWNER}/${REPO_NAME}"
   ensure_repo "$repo" "$VISIBILITY_FLAG"
+  ensure_issue_pipeline_labels "$repo"
 
   printf 'Reading GITOPS_TOKEN from KeePassXC entry: %s\n' "$KEEPASS_ENTRY"
   printf 'KeePassXC may ask for the database password now.\n'
