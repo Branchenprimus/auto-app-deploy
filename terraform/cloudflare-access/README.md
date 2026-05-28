@@ -1,10 +1,11 @@
 # Cloudflare Access Terraform
 
-This Terraform stack creates one Cloudflare Zero Trust Access Application for each app YAML mirrored into `apps/*.yaml` where Access is enabled.
+This Terraform stack creates one Cloudflare Zero Trust Access Application for each app YAML mirrored into `apps/*.yaml` and each platform YAML mirrored into `platform-apps/*.yaml` where Access is enabled.
 
 The GitHub Actions workflow copies root-level `../../apps/*.yaml` into this
-directory before running Terraform so HCP Terraform receives the app
-definitions with the rest of the configuration.
+directory and `../../platform-access/*.yaml` into `platform-apps/` before
+running Terraform so HCP Terraform receives the definitions with the rest of
+the configuration.
 
 Access is enabled by default:
 
@@ -118,8 +119,11 @@ google_oauth_client_secret=<sensitive google oauth client secret>
 
 ```bash
 rm -rf apps
+rm -rf platform-apps
 mkdir -p apps
+mkdir -p platform-apps
 cp ../../apps/*.yaml apps/
+cp ../../platform-access/*.yaml platform-apps/
 terraform init
 terraform plan
 terraform apply

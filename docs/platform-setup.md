@@ -40,6 +40,44 @@ kubectl apply -f argocd/applicationset.yaml
 
 Before applying, replace `repoURL` in `argocd/applicationset.yaml` with the real GitOps repository URL.
 
+### ArgoCD Web UI
+
+Expose the existing ArgoCD server through Traefik:
+
+```bash
+kubectl apply -f platform/argocd-ingress.yaml
+```
+
+This publishes:
+
+```text
+https://argocd.darwin-labs.org
+```
+
+Cloudflare Access for that hostname is defined in `platform-access/argocd.yaml`.
+It uses the same Google identity provider and allow policy as the generated app
+Access policies. Commit and push the platform-access change, or run the
+Cloudflare Access workflow manually, to create/update the Cloudflare policy.
+
+### Homepage
+
+Homepage provides a protected overview of the server apps and basic Kubernetes
+resource widgets.
+
+```bash
+kubectl apply -f platform/homepage.yaml
+```
+
+This publishes:
+
+```text
+https://homepage.darwin-labs.org
+```
+
+Cloudflare Access for that hostname is defined in
+`platform-access/homepage.yaml`. Homepage does not include its own
+authentication layer, so keep the Cloudflare Access policy enabled.
+
 ## GitHub Token
 
 Each app repository needs a `GITOPS_TOKEN` secret with permission to push to the GitOps repository.

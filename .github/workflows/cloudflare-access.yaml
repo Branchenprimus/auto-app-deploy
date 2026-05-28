@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "apps/*.yaml"
+      - "platform-access/*.yaml"
       - "terraform/cloudflare-access/**"
       - ".github/workflows/cloudflare-access.yaml"
   workflow_dispatch:
@@ -37,8 +38,13 @@ jobs:
       - name: Sync app definitions
         run: |
           rm -rf terraform/cloudflare-access/apps
+          rm -rf terraform/cloudflare-access/platform-apps
           mkdir -p terraform/cloudflare-access/apps
+          mkdir -p terraform/cloudflare-access/platform-apps
           cp apps/*.yaml terraform/cloudflare-access/apps/
+          if compgen -G "platform-access/*.yaml" > /dev/null; then
+            cp platform-access/*.yaml terraform/cloudflare-access/platform-apps/
+          fi
         working-directory: .
 
       - name: Terraform init

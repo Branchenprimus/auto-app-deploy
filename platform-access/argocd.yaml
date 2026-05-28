@@ -1,0 +1,12 @@
+name: argocd
+
+route:
+  host: argocd.darwin-labs.org
+  path: /
+
+access:
+  enabled: true
+  name: ArgoCD
+  policy_name: ArgoCD Google login
+  app_launcher_visible: true
+  session_duration: 24h

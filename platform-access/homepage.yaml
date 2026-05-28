@@ -1,0 +1,12 @@
+name: homepage
+
+route:
+  host: homepage.darwin-labs.org
+  path: /
+
+access:
+  enabled: true
+  name: Homepage
+  policy_name: Homepage Google login
+  app_launcher_visible: true
+  session_duration: 24h

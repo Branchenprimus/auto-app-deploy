@@ -17,6 +17,8 @@ chart/single-container-webapp Generic Helm chart for one HTTP container
 app-template/                 Files to copy into application repositories
 docs/                         Setup notes for the Raspberry Pi platform
 terraform/cloudflare-access/  Cloudflare Zero Trust Access apps generated from apps/*.yaml
+platform-access/              Cloudflare Access definitions for platform UIs such as ArgoCD
+platform/                     Platform Kubernetes manifests that are not single-container apps
 ```
 
 ## First Deploy Checklist
@@ -69,3 +71,28 @@ access:
 ```
 
 See [terraform/cloudflare-access/README.md](/home/jan/projects/auto-app-deploy/terraform/cloudflare-access/README.md).
+
+## Platform UIs
+
+Platform UIs are regular Kubernetes manifests under `platform/` and Cloudflare
+Access definitions under `platform-access/`.
+
+Expose the ArgoCD web UI with:
+
+```bash
+kubectl apply -f platform/argocd-ingress.yaml
+```
+
+Cloudflare Access protection for `argocd.darwin-labs.org` is managed from
+`platform-access/argocd.yaml`, using the same Google login policy as the app
+hostnames.
+
+Expose Homepage with:
+
+```bash
+kubectl apply -f platform/homepage.yaml
+```
+
+Homepage is available at `https://homepage.darwin-labs.org` after Cloudflare
+Access applies `platform-access/homepage.yaml`. Homepage has no built-in auth,
+so keep it behind Cloudflare Access.

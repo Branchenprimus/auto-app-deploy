@@ -1,11 +1,20 @@
 locals {
-  app_dir   = "${path.module}/apps"
-  app_files = fileset(local.app_dir, "*.yaml")
+  app_dir          = "${path.module}/apps"
+  platform_app_dir = "${path.module}/platform-apps"
+  app_files        = fileset(local.app_dir, "*.yaml")
+  platform_files   = fileset(local.platform_app_dir, "*.yaml")
 
-  apps = {
+  workload_apps = {
     for file_name in local.app_files :
     trimsuffix(file_name, ".yaml") => yamldecode(file("${local.app_dir}/${file_name}"))
   }
+
+  platform_apps = {
+    for file_name in local.platform_files :
+    trimsuffix(file_name, ".yaml") => yamldecode(file("${local.platform_app_dir}/${file_name}"))
+  }
+
+  apps = merge(local.workload_apps, local.platform_apps)
 
   protected_apps = {
     for key, app in local.apps :

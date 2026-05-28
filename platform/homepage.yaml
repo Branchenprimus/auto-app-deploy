@@ -1,0 +1,276 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: homepage
+  namespace: apps
+  labels:
+    app.kubernetes.io/name: homepage
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage
+  namespace: apps
+  labels:
+    app.kubernetes.io/name: homepage
+data:
+  kubernetes.yaml: |
+    mode: cluster
+  settings.yaml: |
+    title: Darwin Labs
+    target: _blank
+    hideVersion: true
+    statusStyle: dot
+    layout:
+      Platform:
+        style: row
+        columns: 3
+      Apps:
+        style: row
+        columns: 3
+  bookmarks.yaml: |
+    - Developer:
+        - GitHub:
+            - abbr: GH
+              href: https://github.com/Branchenprimus
+        - Auto App Deploy:
+            - abbr: GIT
+              href: https://github.com/Branchenprimus/auto-app-deploy
+  services.yaml: |
+    - Platform:
+        - ArgoCD:
+            href: https://argocd.darwin-labs.org
+            description: GitOps deployment control plane
+            icon: argocd.png
+        - GitHub Issue Pipeline:
+            href: https://gh-issue-pipeline.darwin-labs.org/healthz
+            description: Codex issue automation webhook
+            icon: github.png
+        - Pi Apps Dashboard:
+            href: https://pi-apps-dashboard.darwin-labs.org
+            description: Raspberry Pi app dashboard
+            icon: mdi-view-dashboard
+    - Apps:
+        - Flashcards:
+            href: https://flashcards.darwin-labs.org
+            description: Flashcard learning app
+            icon: mdi-cards
+        - Simple Notes:
+            href: https://simple-notes.darwin-labs.org
+            description: Notes app
+            icon: mdi-note-text
+        - Triathlon Race Planner:
+            href: https://triathlon-race-planner.darwin-labs.org
+            description: Race planning app
+            icon: mdi-run
+        - USC Crawler:
+            href: https://usc-crawler.darwin-labs.org
+            description: USC search and crawl app
+            icon: mdi-web
+  widgets.yaml: |
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: k3s
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+    - resources:
+        backend: resources
+        expanded: true
+        cpu: true
+        memory: true
+        network: default
+    - search:
+        provider: duckduckgo
+        target: _blank
+  docker.yaml: ""
+  custom.css: ""
+  custom.js: ""
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: homepage
+  labels:
+    app.kubernetes.io/name: homepage
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+      - nodes
+      - pods
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - metrics.k8s.io
+    resources:
+      - nodes
+      - pods
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: homepage
+  labels:
+    app.kubernetes.io/name: homepage
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: homepage
+subjects:
+  - kind: ServiceAccount
+    name: homepage
+    namespace: apps
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homepage
+  namespace: apps
+  labels:
+    app.kubernetes.io/name: homepage
+spec:
+  revisionHistoryLimit: 3
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: homepage
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: homepage
+    spec:
+      serviceAccountName: homepage
+      automountServiceAccountToken: true
+      containers:
+        - name: homepage
+          image: ghcr.io/gethomepage/homepage:latest
+          imagePullPolicy: Always
+          env:
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: HOMEPAGE_ALLOWED_HOSTS
+              value: "$(MY_POD_IP):3000,homepage.darwin-labs.org"
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - mountPath: /app/config/bookmarks.yaml
+              name: homepage-config
+              subPath: bookmarks.yaml
+            - mountPath: /app/config/custom.css
+              name: homepage-config
+              subPath: custom.css
+            - mountPath: /app/config/custom.js
+              name: homepage-config
+              subPath: custom.js
+            - mountPath: /app/config/docker.yaml
+              name: homepage-config
+              subPath: docker.yaml
+            - mountPath: /app/config/kubernetes.yaml
+              name: homepage-config
+              subPath: kubernetes.yaml
+            - mountPath: /app/config/services.yaml
+              name: homepage-config
+              subPath: services.yaml
+            - mountPath: /app/config/settings.yaml
+              name: homepage-config
+              subPath: settings.yaml
+            - mountPath: /app/config/widgets.yaml
+              name: homepage-config
+              subPath: widgets.yaml
+            - mountPath: /app/config/logs
+              name: logs
+      volumes:
+        - name: homepage-config
+          configMap:
+            name: homepage
+        - name: logs
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homepage
+  namespace: apps
+  labels:
+    app.kubernetes.io/name: homepage
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: homepage
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homepage
+  namespace: apps
+  labels:
+    app.kubernetes.io/name: homepage
+spec:
+  rules:
+    - host: homepage.darwin-labs.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: homepage
+                port:
+                  name: http
