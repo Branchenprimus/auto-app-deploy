@@ -3,7 +3,7 @@ image:
   repository: ghcr.io/branchenprimus/gh-issue-pipeline
   pullSecrets:
     - name: ghcr-pull
-  tag: v1.0.0
+  tag: v2.0.0
   pullPolicy: IfNotPresent
 container:
   port: 8787
