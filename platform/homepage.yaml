@@ -18,6 +18,9 @@ data:
     mode: cluster
   settings.yaml: |
     title: Darwin Labs
+    theme: dark
+    color: violet
+    cardBlur: sm
     target: _blank
     hideVersion: true
     hideErrors: true
@@ -133,7 +136,29 @@ data:
   docker.yaml: ""
   proxmox.yaml: ""
   openapi.yaml: ""
-  custom.css: ""
+  custom.css: |
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%) !important;
+      background-attachment: fixed !important;
+    }
+
+    /* Lift cards slightly on hover */
+    .service-card,
+    a.service-card {
+      transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    }
+    .service-card:hover,
+    a.service-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 8px 32px rgba(139, 92, 246, 0.25) !important;
+    }
+
+    /* Subtle violet glow on the section headers */
+    #information-widgets h2,
+    .services-group h2 {
+      letter-spacing: 0.08em;
+      text-shadow: 0 0 24px rgba(139, 92, 246, 0.5);
+    }
   custom.js: ""
 ---
 apiVersion: rbac.authorization.k8s.io/v1

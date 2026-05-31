@@ -12,7 +12,7 @@ DEFAULT_KEEPASS_ENTRY="GITOPS_TOKEN"
 DEFAULT_PROJECTS_DIR="/home/jan/projects"
 DEFAULT_BOILERPLATE_PORT="8080"
 DEFAULT_AGENT_INSTRUCTIONS_TEMPLATE="$PLATFORM_DIR/app-template/AGENT_INSTRUCTIONS.md"
-ISSUE_PIPELINE_AUTOMATION_LABEL="codex-auto"
+ISSUE_PIPELINE_AUTOMATION_LABEL="agent-auto"
 ISSUE_PIPELINE_RELEASE_LABEL="release"
 
 # Adjust these defaults if your KeePassXC database or token entry lives elsewhere.
@@ -71,6 +71,18 @@ slugify() {
   printf '%s' "$1" \
     | tr '[:upper:]' '[:lower:]' \
     | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//'
+}
+
+_is_secret_var() {
+  local key="$1"
+  local val="$2"
+  if printf '%s' "$key" | grep -qiE '(SECRET|PASSWORD|TOKEN|CLIENT_ID|CLIENT_SECRET|CREDENTIAL|API_KEY|PRIVATE_KEY)'; then
+    return 0
+  fi
+  if printf '%s' "$val" | grep -qiE '^(your_|replace.with|change.?me|<[A-Z]|TODO|changeme|placeholder)'; then
+    return 0
+  fi
+  return 1
 }
 
 resolve_app_path() {
@@ -173,6 +185,69 @@ detect_container_port_default() {
   fi
 
   printf '80'
+}
+
+detect_compose_volume_mount() {
+  local compose_file="$1"
+  [[ -f "$compose_file" ]] || return 0
+
+  awk '
+    /- [A-Za-z_][A-Za-z0-9_]*:\// {
+      for (i = 1; i <= NF; i++) {
+        if ($i ~ /^[A-Za-z_][A-Za-z0-9_]*:\//) {
+          n = split($i, p, ":")
+          if (n >= 2 && p[2] ~ /^\//) { print p[2]; exit }
+        }
+      }
+    }
+  ' "$compose_file"
+}
+
+detect_persistence_mount() {
+  local app_path="$1"
+  local compose_file mount
+
+  for compose_file in "$app_path/docker-compose.yml" "$app_path/docker-compose.yaml"; do
+    mount="$(detect_compose_volume_mount "$compose_file")"
+    if [[ -n "$mount" ]]; then
+      printf '%s' "$mount"
+      return
+    fi
+  done
+
+  if [[ -f "$app_path/Dockerfile" ]]; then
+    mount="$(awk 'toupper($1)=="VOLUME" { val=$2; gsub(/["\\[\\]]/, "", val); if (val ~ /^\//) { print val; exit } }' "$app_path/Dockerfile" 2>/dev/null || true)"
+    [[ -n "$mount" ]] && printf '%s' "$mount"
+  fi
+}
+
+build_env_yaml() {
+  local env_file="$1"
+  local secret_name="$2"
+  local result="" key val
+
+  while IFS= read -r line; do
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "${line//[[:space:]]/}" ]] && continue
+    [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]] || continue
+    key="${BASH_REMATCH[1]}"
+    val="${BASH_REMATCH[2]}"
+    [[ "$key" == "PORT" || "$key" == "APP_PORT" || "$key" == "HOST_PORT" ]] && continue
+    [[ -z "$val" ]] && continue
+
+    if _is_secret_var "$key" "$val"; then
+      result+="  - name: ${key}"$'\n'
+      result+="    valueFrom:"$'\n'
+      result+="      secretKeyRef:"$'\n'
+      result+="        name: ${secret_name}"$'\n'
+      result+="        key: ${key}"$'\n'
+    else
+      result+="  - name: ${key}"$'\n'
+      result+="    value: \"$(printf '%s' "$val" | sed 's/"/\\"/g')\""$'\n'
+    fi
+  done < "$env_file"
+
+  printf '%s' "$result"
 }
 
 write_boilerplate_dockerfile() {
@@ -286,6 +361,13 @@ EOF
 
 write_app_yaml() {
   local target="$1"
+  local env_section
+
+  if [[ -n "${APP_ENV_YAML:-}" ]]; then
+    env_section="env:"$'\n'"${APP_ENV_YAML%$'\n'}"
+  else
+    env_section="env: []"
+  fi
 
   cat > "$target" <<EOF
 name: $APP_NAME
@@ -312,8 +394,18 @@ resources:
     cpu: 250m
     memory: 128Mi
 
-env: []
+$env_section
 EOF
+
+  if [[ "${PERSISTENCE_ENABLED:-false}" == "true" ]]; then
+    cat >> "$target" <<EOF
+persistence:
+  enabled: true
+  mountPath: $PERSISTENCE_MOUNT_PATH
+  size: ${PERSISTENCE_SIZE:-2Gi}
+  storageClassName: ${PERSISTENCE_STORAGE_CLASS:-local-path}
+EOF
+  fi
 }
 
 copy_release_workflow() {
@@ -435,7 +527,7 @@ ensure_issue_pipeline_labels() {
     "$repo" \
     "$ISSUE_PIPELINE_AUTOMATION_LABEL" \
     "5319e7" \
-    "Run the GitHub issue Codex automation pipeline"
+    "Run the GitHub issue agent automation pipeline"
   ensure_repo_label \
     "$repo" \
     "$ISSUE_PIPELINE_RELEASE_LABEL" \
@@ -453,6 +545,49 @@ push_current_branch() {
   fi
 
   git -C "$APP_PATH" push -u origin "$branch"
+}
+
+add_to_homepage() {
+  local homepage_yaml="$PLATFORM_DIR/platform/homepage.yaml"
+  [[ -f "$homepage_yaml" ]] || { printf 'Homepage config not found, skipping.\n'; return; }
+
+  local display_name description icon
+  display_name="$(prompt 'App display name on homepage' "$APP_NAME")"
+  description="$(prompt_optional 'Short description')"
+  icon="$(prompt 'Icon (mdi-* or filename.png)' 'mdi-application')"
+
+  python3 - "$homepage_yaml" "$display_name" "https://$HOSTNAME" "$description" "$icon" <<'PY'
+import sys
+from pathlib import Path
+
+path, name, href, description, icon = Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
+marker = "    - Platform:"
+entry = (
+    f"        - {name}:\n"
+    f"            href: {href}\n"
+    f"            siteMonitor: {href}\n"
+    f"            description: {description}\n"
+    f"            icon: {icon}\n"
+)
+content = path.read_text()
+if marker not in content:
+    print(f"Could not find '{marker}' in homepage config.", file=sys.stderr)
+    sys.exit(1)
+if href in content:
+    print(f"'{name}' already present in homepage config, skipping.")
+    sys.exit(0)
+path.write_text(content.replace(marker, entry + marker, 1))
+print(f"Added '{name}' to homepage.")
+PY
+
+  git -C "$PLATFORM_DIR" add platform/homepage.yaml
+  if ! git -C "$PLATFORM_DIR" diff --cached --quiet; then
+    git -C "$PLATFORM_DIR" commit -m "Add $APP_NAME to homepage"
+    git -C "$PLATFORM_DIR" push origin main
+    printf 'Homepage updated.\n'
+  else
+    printf 'No homepage changes to commit.\n'
+  fi
 }
 
 main() {
@@ -525,6 +660,41 @@ main() {
     CONTAINER_PORT="$(prompt 'Container HTTP port' "$container_port_default")"
   fi
   [[ "$CONTAINER_PORT" =~ ^[0-9]+$ ]] || die "Container HTTP port must be numeric."
+
+  PERSISTENCE_ENABLED="false"
+  PERSISTENCE_MOUNT_PATH=""
+  PERSISTENCE_SIZE="2Gi"
+  PERSISTENCE_STORAGE_CLASS="local-path"
+
+  local detected_mount
+  detected_mount="$(detect_persistence_mount "$APP_PATH")"
+  if [[ -n "$detected_mount" ]]; then
+    printf 'Detected volume mount: %s\n' "$detected_mount"
+    if prompt_yes_no 'Enable persistence (PVC) for this mount?' 'y'; then
+      PERSISTENCE_ENABLED="true"
+      PERSISTENCE_MOUNT_PATH="$(prompt 'Mount path' "$detected_mount")"
+      PERSISTENCE_SIZE="$(prompt 'Storage size' '2Gi')"
+      PERSISTENCE_STORAGE_CLASS="$(prompt 'Storage class' 'local-path')"
+    fi
+  fi
+
+  APP_ENV_YAML=""
+  local env_example="$APP_PATH/.env.example"
+  if [[ -f "$env_example" ]]; then
+    printf 'Found .env.example — scanning env vars...\n'
+    if prompt_yes_no 'Include env vars from .env.example in app.yaml?' 'y'; then
+      local secret_name
+      secret_name="$(slugify "$APP_NAME")-secret"
+      APP_ENV_YAML="$(build_env_yaml "$env_example" "$secret_name")"
+      if [[ -n "$APP_ENV_YAML" ]]; then
+        printf 'Secrets will reference k8s secret "%s" via secretKeyRef.\n' "$secret_name"
+        printf 'Create it manually on the cluster before first deploy:\n'
+        printf '  kubectl create secret generic %s -n apps \\\n' "$secret_name"
+        printf '    --from-literal=KEY=value ...\n'
+      fi
+    fi
+  fi
+
   ACCESS_ENABLED="true"
   if ! prompt_yes_no 'Protect with Cloudflare Access?' 'y'; then
     ACCESS_ENABLED="false"
@@ -613,6 +783,10 @@ main() {
 
   if prompt_yes_no 'Push current branch now?' 'y'; then
     push_current_branch
+  fi
+
+  if prompt_yes_no 'Add this app to the homepage?' 'y'; then
+    add_to_homepage
   fi
 
   printf '\nNext release:\n'
