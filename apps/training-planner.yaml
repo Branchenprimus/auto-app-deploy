@@ -21,7 +21,7 @@ resources:
     memory: 128Mi
 env:
   - name: APP_ORIGIN
-    value: "http://localhost:3000"
+    value: "https://training-planner.darwin-labs.org"
   - name: NUXT_STRAVA_CLIENT_ID
     valueFrom:
       secretKeyRef:
@@ -33,7 +33,7 @@ env:
         name: training-planner-secret
         key: NUXT_STRAVA_CLIENT_SECRET
   - name: NUXT_STRAVA_REDIRECT_URI
-    value: "http://localhost:3000/api/auth/strava/callback"
+    value: "https://training-planner.darwin-labs.org/api/auth/strava/callback"
   - name: NUXT_STRAVA_SCOPES
     value: "activity:read_all,profile:read_all"
   - name: NUXT_SQLITE_PATH
