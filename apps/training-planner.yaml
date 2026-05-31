@@ -1,0 +1,57 @@
+name: training-planner
+image:
+  repository: ghcr.io/branchenprimus/training-planner
+  pullSecrets:
+    - name: ghcr-pull
+  tag: v1.0.0
+  pullPolicy: IfNotPresent
+container:
+  port: 3000
+route:
+  host: training-planner.darwin-labs.org
+  path: /
+access:
+  enabled: true
+resources:
+  requests:
+    cpu: 25m
+    memory: 32Mi
+  limits:
+    cpu: 250m
+    memory: 128Mi
+env:
+  - name: APP_ORIGIN
+    value: "http://localhost:3000"
+  - name: NUXT_STRAVA_CLIENT_ID
+    valueFrom:
+      secretKeyRef:
+        name: training-planner-secret
+        key: NUXT_STRAVA_CLIENT_ID
+  - name: NUXT_STRAVA_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: training-planner-secret
+        key: NUXT_STRAVA_CLIENT_SECRET
+  - name: NUXT_STRAVA_REDIRECT_URI
+    value: "http://localhost:3000/api/auth/strava/callback"
+  - name: NUXT_STRAVA_SCOPES
+    value: "activity:read_all,profile:read_all"
+  - name: NUXT_SQLITE_PATH
+    value: "/data/training-planner.sqlite"
+  - name: NUXT_SYNC_INTERVAL_MINUTES
+    value: "30"
+  - name: NUXT_DEFAULT_USER_EMAIL
+    value: "local@localhost"
+  - name: NUXT_SESSION_COOKIE_NAME
+    value: "training_planner_state"
+  - name: NUXT_SESSION_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: training-planner-secret
+        key: NUXT_SESSION_SECRET
+persistence:
+  enabled: true
+  mountPath: /data
+  size: 2Gi
+  storageClassName: local-path
+namespace: apps
