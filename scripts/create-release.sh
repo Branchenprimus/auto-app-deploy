@@ -4,6 +4,23 @@ set -euo pipefail
 DEFAULT_PROJECTS_DIR="/home/jan/projects"
 DEFAULT_GITOPS_REPO_PATH="/home/jan/projects/auto-app-deploy"
 DEFAULT_LIVE_TIMEOUT_SECONDS=300
+AUTO_MODE=false
+PROJECT_INPUT=""
+
+usage() {
+  cat <<'EOF'
+Usage: create-release.sh [--auto] [--project=<repo_name|owner/repo|path>]
+
+Create and push the next release tag, then watch the GitHub Actions pipeline.
+
+Options:
+  --auto                 Use default values for prompts.
+  --project=<project>    Release the matching project without prompting.
+                         Matches a local path, repo directory name, GitHub
+                         owner/repo, or GitHub repo name under /home/jan/projects.
+  -h, --help             Show this help.
+EOF
+}
 
 die() {
   printf 'Error: %s\n' "$*" >&2
@@ -18,6 +35,12 @@ prompt() {
   local label="$1"
   local default="${2:-}"
   local value
+
+  if [[ "$AUTO_MODE" == "true" ]]; then
+    [[ -n "$default" ]] || die "$label is required in --auto mode"
+    printf '%s' "$default"
+    return
+  fi
 
   if [[ -n "$default" ]]; then
     read -r -p "$label [$default]: " value
@@ -34,8 +57,12 @@ prompt_yes_no() {
   local default="${2:-y}"
   local value
 
-  read -r -p "$label [y/n, default: $default]: " value
-  value="${value:-$default}"
+  if [[ "$AUTO_MODE" == "true" ]]; then
+    value="$default"
+  else
+    read -r -p "$label [y/n, default: $default]: " value
+    value="${value:-$default}"
+  fi
 
   case "$value" in
     y|Y|yes|YES|true|TRUE) return 0 ;;
@@ -52,6 +79,30 @@ resolve_repo_path() {
   else
     printf '%s/%s' "$DEFAULT_PROJECTS_DIR" "$input"
   fi
+}
+
+parse_args() {
+  local arg
+
+  for arg in "$@"; do
+    case "$arg" in
+      --auto)
+        AUTO_MODE=true
+        ;;
+      --project=*)
+        PROJECT_INPUT="${arg#--project=}"
+        [[ -n "$PROJECT_INPUT" ]] || die "--project requires a value"
+        AUTO_MODE=true
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      *)
+        die "Unknown argument: $arg"
+        ;;
+    esac
+  done
 }
 
 discover_git_repos() {
@@ -86,6 +137,48 @@ repo_display_name() {
   fi
 }
 
+resolve_project_repo_path() {
+  local input="$1"
+  local candidate
+  local repo_path
+  local github_repo
+  local github_name
+  local matches=()
+
+  candidate="$(resolve_repo_path "$input")"
+  if [[ -d "$candidate/.git" ]]; then
+    printf '%s' "$candidate"
+    return
+  fi
+
+  while IFS= read -r repo_path; do
+    [[ -n "$repo_path" ]] || continue
+    github_repo="$(github_repo_from_origin "$repo_path" || true)"
+    github_name="${github_repo##*/}"
+
+    if [[ "$(basename "$repo_path")" == "$input" \
+      || "$github_repo" == "$input" \
+      || "$github_name" == "$input" ]]; then
+      matches+=("$repo_path")
+    fi
+  done < <(discover_git_repos)
+
+  if [[ "${#matches[@]}" -eq 0 ]]; then
+    printf '%s' "$candidate"
+    return
+  fi
+
+  if [[ "${#matches[@]}" -gt 1 ]]; then
+    printf 'Project name is ambiguous: %s\n' "$input" >&2
+    for repo_path in "${matches[@]}"; do
+      printf '  %s\n' "$(repo_display_name "$repo_path")" >&2
+    done
+    die "Use an absolute path or GitHub owner/repo."
+  fi
+
+  printf '%s' "${matches[0]}"
+}
+
 select_repo_path() {
   local repos=()
   local repo_path
@@ -109,8 +202,12 @@ select_repo_path() {
   done
   printf '   m) Enter a path manually\n' >&2
 
-  read -r -p 'Select repo [1]: ' choice
-  choice="${choice:-1}"
+  if [[ "$AUTO_MODE" == "true" ]]; then
+    choice="1"
+  else
+    read -r -p 'Select repo [1]: ' choice
+    choice="${choice:-1}"
+  fi
 
   if [[ "$choice" == "m" || "$choice" == "M" ]]; then
     printf '%s' "$(resolve_repo_path "$(prompt 'Local repo path')")"
@@ -524,6 +621,8 @@ print_release_summary() {
 }
 
 main() {
+  parse_args "$@"
+
   need_cmd git
   need_cmd gh
   need_cmd realpath
@@ -546,8 +645,12 @@ main() {
   local watch_status
   local logs_status
 
-  repo_path_input="$(select_repo_path)"
-  repo_path="$(resolve_repo_path "$repo_path_input")"
+  if [[ -n "$PROJECT_INPUT" ]]; then
+    repo_path="$(resolve_project_repo_path "$PROJECT_INPUT")"
+  else
+    repo_path_input="$(select_repo_path)"
+    repo_path="$(resolve_repo_path "$repo_path_input")"
+  fi
   [[ -d "$repo_path" ]] || die "Repository path does not exist: $repo_path"
   repo_path="$(realpath "$repo_path")"
   [[ -d "$repo_path/.git" ]] || die "Not a git repository: $repo_path"
