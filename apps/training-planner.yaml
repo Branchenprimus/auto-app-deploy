@@ -10,6 +10,9 @@ container:
 route:
   host: training-planner.darwin-labs.org
   path: /
+homepage:
+  description: Strava-connected cycling, running and swimming tracker
+  icon: https://training-planner.darwin-labs.org/favicon.svg
 access:
   enabled: true
 resources:

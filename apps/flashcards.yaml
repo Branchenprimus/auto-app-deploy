@@ -8,6 +8,9 @@ container:
 route:
   host: flashcards.darwin-labs.org
   path: /
+homepage:
+  description: Flashcard learning app
+  icon: https://flashcards.darwin-labs.org/favicon.ico
 access:
   enabled: true
 resources:

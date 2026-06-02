@@ -49,6 +49,12 @@ Wenn der Ordner bereits ein Git-Repo mit GitHub-`origin` ist, verwendet das Scri
 
 Danach legt es `app.yaml` und den Release-Workflow an, erstellt das GitHub-Repo, setzt die Issue-Pipeline-Labels `codex-auto` und `release`, setzt `GITOPS_TOKEN` und pusht den Branch.
 
+Homepage erkennt die App automatisch ueber die Ingress-Annotationen des shared
+Helm-Charts. Fuer eigene Homepage-Texte oder Icons kannst du optional
+`homepage.name`, `homepage.description` oder `homepage.icon` in `app.yaml`
+setzen; ohne Angabe nutzt Homepage den App-Namen und
+`https://<hostname>/favicon.ico`.
+
 Beim Lesen des Tokens fragt KeePassXC nach dem Datenbank-Passwort. Die Eingabe ist absichtlich nicht sichtbar.
 
 ## Manuell
@@ -102,6 +108,15 @@ resources:
     memory: 128Mi
 
 env: []
+```
+
+Optional fuer Homepage-Anzeige:
+
+```yaml
+homepage:
+  name: My App
+  description: Short app description
+  icon: https://my-app.darwin-labs.org/favicon.svg
 ```
 
 Falls die App lokale Daten behalten muss, z. B. SQLite oder eine eingebettete Datenbank:

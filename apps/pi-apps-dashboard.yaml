@@ -10,6 +10,10 @@ container:
 route:
   host: pi-apps-dashboard.darwin-labs.org
   path: /
+homepage:
+  name: Pi Apps Dashboard
+  description: Raspberry Pi app dashboard
+  icon: https://pi-apps-dashboard.darwin-labs.org/static/icons/dashboard.svg?v=3
 access:
   enabled: true
 resources:

@@ -547,47 +547,9 @@ push_current_branch() {
   git -C "$APP_PATH" push -u origin "$branch"
 }
 
-add_to_homepage() {
-  local homepage_yaml="$PLATFORM_DIR/platform/homepage.yaml"
-  [[ -f "$homepage_yaml" ]] || { printf 'Homepage config not found, skipping.\n'; return; }
-
-  local display_name description icon
-  display_name="$(prompt 'App display name on homepage' "$APP_NAME")"
-  description="$(prompt_optional 'Short description')"
-  icon="$(prompt 'Icon (mdi-* or filename.png)' 'mdi-application')"
-
-  python3 - "$homepage_yaml" "$display_name" "https://$HOSTNAME" "$description" "$icon" <<'PY'
-import sys
-from pathlib import Path
-
-path, name, href, description, icon = Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
-marker = "    - Platform:"
-entry = (
-    f"        - {name}:\n"
-    f"            href: {href}\n"
-    f"            siteMonitor: {href}\n"
-    f"            description: {description}\n"
-    f"            icon: {icon}\n"
-)
-content = path.read_text()
-if marker not in content:
-    print(f"Could not find '{marker}' in homepage config.", file=sys.stderr)
-    sys.exit(1)
-if href in content:
-    print(f"'{name}' already present in homepage config, skipping.")
-    sys.exit(0)
-path.write_text(content.replace(marker, entry + marker, 1))
-print(f"Added '{name}' to homepage.")
-PY
-
-  git -C "$PLATFORM_DIR" add platform/homepage.yaml
-  if ! git -C "$PLATFORM_DIR" diff --cached --quiet; then
-    git -C "$PLATFORM_DIR" commit -m "Add $APP_NAME to homepage"
-    git -C "$PLATFORM_DIR" push origin main
-    printf 'Homepage updated.\n'
-  else
-    printf 'No homepage changes to commit.\n'
-  fi
+homepage_discovery_note() {
+  printf 'Homepage app discovery is automatic through ingress annotations in the shared Helm chart.\n'
+  printf 'Set homepage.name, homepage.description, or homepage.icon in app.yaml only when you want custom display metadata.\n'
 }
 
 main() {
@@ -785,9 +747,7 @@ main() {
     push_current_branch
   fi
 
-  if prompt_yes_no 'Add this app to the homepage?' 'y'; then
-    add_to_homepage
-  fi
+  homepage_discovery_note
 
   printf '\nNext release:\n'
   printf '  cd %q\n' "$APP_PATH"

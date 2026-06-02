@@ -15,6 +15,14 @@ route:
   host: demo.darwin-labs.org
   path: /
 
+homepage:
+  enabled: true
+  group: Apps
+  name: ""
+  description: ""
+  icon: ""
+  weight: ""
+
 resources:
   requests:
     cpu: 50m

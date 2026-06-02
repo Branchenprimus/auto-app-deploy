@@ -11,6 +11,9 @@ container:
 route:
   host: triathlon-race-planner.darwin-labs.org
   path: /
+homepage:
+  description: Race planning app
+  icon: https://triathlon-race-planner.darwin-labs.org/favicon.svg
 
 access:
   enabled: true

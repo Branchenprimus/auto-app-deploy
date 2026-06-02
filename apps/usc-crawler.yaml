@@ -10,6 +10,10 @@ container:
 route:
   host: usc-crawler.darwin-labs.org
   path: /
+homepage:
+  name: USC Crawler
+  description: USC search and crawl app
+  icon: https://usc-crawler.darwin-labs.org/favicon.ico
 access:
   enabled: true
 resources:

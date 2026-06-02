@@ -5,6 +5,21 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     {{- include "single-container-webapp.labels" . | nindent 4 }}
+  {{- if .Values.homepage.enabled }}
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: {{ default "Apps" .Values.homepage.group | quote }}
+    gethomepage.dev/name: {{ default (.Values.name | replace "-" " " | title) .Values.homepage.name | quote }}
+    gethomepage.dev/description: {{ default (printf "%s deployed application" (.Values.name | replace "-" " " | title)) .Values.homepage.description | quote }}
+    gethomepage.dev/icon: {{ default (printf "https://%s/favicon.ico" .Values.route.host) .Values.homepage.icon | quote }}
+    gethomepage.dev/href: {{ printf "https://%s%s" .Values.route.host .Values.route.path | quote }}
+    gethomepage.dev/siteMonitor: {{ printf "https://%s%s" .Values.route.host .Values.route.path | quote }}
+    gethomepage.dev/app: {{ include "single-container-webapp.name" . | quote }}
+    gethomepage.dev/pod-selector: {{ printf "app.kubernetes.io/name=%s" (include "single-container-webapp.name" .) | quote }}
+    {{- if .Values.homepage.weight }}
+    gethomepage.dev/weight: {{ .Values.homepage.weight | quote }}
+    {{- end }}
+  {{- end }}
 spec:
   rules:
     - host: {{ .Values.route.host }}

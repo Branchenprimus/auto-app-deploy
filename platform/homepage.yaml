@@ -16,6 +16,7 @@ metadata:
 data:
   kubernetes.yaml: |
     mode: cluster
+    ingress: true
   settings.yaml: |
     title: Darwin Labs
     theme: dark
@@ -47,48 +48,12 @@ data:
             - abbr: GIT
               href: https://github.com/Branchenprimus/auto-app-deploy
   services.yaml: |
-    - Apps:
-        - Flashcards:
-            href: https://flashcards.darwin-labs.org
-            siteMonitor: https://flashcards.darwin-labs.org
-            description: Flashcard learning app
-            icon: mdi-cards
-        - Simple Notes:
-            href: https://simple-notes.darwin-labs.org
-            siteMonitor: https://simple-notes.darwin-labs.org
-            description: Notes app
-            icon: mdi-note-text
-        - Triathlon Race Planner:
-            href: https://triathlon-race-planner.darwin-labs.org
-            siteMonitor: https://triathlon-race-planner.darwin-labs.org
-            description: Race planning app
-            icon: mdi-run
-        - USC Crawler:
-            href: https://usc-crawler.darwin-labs.org
-            siteMonitor: https://usc-crawler.darwin-labs.org
-            description: USC search and crawl app
-            icon: mdi-web
-        - Pi Apps Dashboard:
-            href: https://pi-apps-dashboard.darwin-labs.org
-            siteMonitor: https://pi-apps-dashboard.darwin-labs.org
-            description: Raspberry Pi app dashboard
-            icon: mdi-view-dashboard
-        - Training Planner:
-            href: https://training-planner.darwin-labs.org
-            siteMonitor: https://training-planner.darwin-labs.org
-            description: Strava-connected cycling, running and swimming tracker
-            icon: mdi-run-fast
     - Platform:
         - ArgoCD:
             href: https://argocd.darwin-labs.org
             siteMonitor: https://argocd.darwin-labs.org
             description: GitOps deployment control plane
             icon: argocd.png
-        - GitHub Issue Pipeline:
-            href: https://gh-issue-pipeline.darwin-labs.org/healthz
-            siteMonitor: https://gh-issue-pipeline.darwin-labs.org/healthz
-            description: Codex issue automation webhook
-            icon: github.png
         - Homepage:
             href: https://homepage.darwin-labs.org
             siteMonitor: https://homepage.darwin-labs.org
@@ -137,25 +102,42 @@ data:
   proxmox.yaml: ""
   openapi.yaml: ""
   custom.css: |
-    body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%) !important;
+    html,
+    body,
+    #__next {
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 14% 8%, rgba(14, 165, 233, 0.20), transparent 30rem),
+        radial-gradient(circle at 90% 18%, rgba(139, 92, 246, 0.26), transparent 28rem),
+        linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%) !important;
       background-attachment: fixed !important;
     }
 
-    /* Lift cards slightly on hover */
-    .service-card,
-    a.service-card {
-      transition: transform 0.15s ease, box-shadow 0.15s ease !important;
-    }
-    .service-card:hover,
-    a.service-card:hover {
-      transform: translateY(-3px) !important;
-      box-shadow: 0 8px 32px rgba(139, 92, 246, 0.25) !important;
+    main,
+    [class*="layout"] {
+      background: transparent !important;
     }
 
-    /* Subtle violet glow on the section headers */
+    .service-card,
+    a.service-card,
+    [class*="service-card"] {
+      border: 1px solid rgba(196, 181, 253, 0.18) !important;
+      background: rgba(15, 23, 42, 0.62) !important;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.28) !important;
+      transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+      backdrop-filter: blur(12px);
+    }
+
+    .service-card:hover,
+    a.service-card:hover,
+    [class*="service-card"]:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 24px 60px rgba(139, 92, 246, 0.28) !important;
+    }
+
     #information-widgets h2,
-    .services-group h2 {
+    .services-group h2,
+    [class*="services"] h2 {
       letter-spacing: 0.08em;
       text-shadow: 0 0 24px rgba(139, 92, 246, 0.5);
     }
@@ -273,36 +255,8 @@ spec:
               cpu: 500m
               memory: 512Mi
           volumeMounts:
-            - mountPath: /app/config/bookmarks.yaml
+            - mountPath: /app/config
               name: homepage-config
-              subPath: bookmarks.yaml
-            - mountPath: /app/config/custom.css
-              name: homepage-config
-              subPath: custom.css
-            - mountPath: /app/config/custom.js
-              name: homepage-config
-              subPath: custom.js
-            - mountPath: /app/config/docker.yaml
-              name: homepage-config
-              subPath: docker.yaml
-            - mountPath: /app/config/openapi.yaml
-              name: homepage-config
-              subPath: openapi.yaml
-            - mountPath: /app/config/proxmox.yaml
-              name: homepage-config
-              subPath: proxmox.yaml
-            - mountPath: /app/config/kubernetes.yaml
-              name: homepage-config
-              subPath: kubernetes.yaml
-            - mountPath: /app/config/services.yaml
-              name: homepage-config
-              subPath: services.yaml
-            - mountPath: /app/config/settings.yaml
-              name: homepage-config
-              subPath: settings.yaml
-            - mountPath: /app/config/widgets.yaml
-              name: homepage-config
-              subPath: widgets.yaml
             - mountPath: /app/config/logs
               name: logs
       volumes:

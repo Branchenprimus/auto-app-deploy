@@ -10,6 +10,10 @@ route:
   host: demo.darwin-labs.org
   path: /
 
+homepage:
+  description: Demo web application
+  icon: https://demo.darwin-labs.org/favicon.ico
+
 access:
   enabled: true
 

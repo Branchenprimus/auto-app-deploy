@@ -10,6 +10,9 @@ container:
 route:
   host: simple-notes.darwin-labs.org
   path: /
+homepage:
+  description: Notes app
+  icon: https://simple-notes.darwin-labs.org/favicon.ico
 access:
   enabled: true
 resources:

@@ -10,6 +10,10 @@ container:
 route:
   host: gh-issue-pipeline.darwin-labs.org
   path: /
+homepage:
+  group: Platform
+  description: Codex issue automation webhook
+  icon: github.png
 # GitHub webhooks cannot complete a Cloudflare Access login flow.
 # The webhook endpoint is protected by GitHub HMAC signature verification.
 access:
