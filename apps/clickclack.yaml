@@ -1,0 +1,35 @@
+name: clickclack
+image:
+  repository: ghcr.io/branchenprimus/clickclack
+  pullSecrets:
+    - name: ghcr-pull
+  # Bumped automatically by .github/workflows/track-clickclack.yaml (PR-gated).
+  # Format: <YYYYMMDD>-<upstream-short-sha>
+  tag: 20260602-7673eea
+  pullPolicy: IfNotPresent
+container:
+  port: 8080
+route:
+  host: clickclack.darwin-labs.org
+  path: /
+# ClickClack ships its own auth (magic-link / GitHub OAuth) and a public
+# landing page at "/", so we do NOT gate it behind Cloudflare Access.
+access:
+  enabled: false
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+env:
+  - name: CLICKCLACK_PUBLIC_URL
+    value: https://clickclack.darwin-labs.org
+# SQLite DB + uploads live here. ReadWriteOnce + replicaCount 1 (chart default)
+# — do NOT scale replicas with the SQLite backend.
+persistence:
+  enabled: true
+  mountPath: /app/data
+  size: 5Gi
+namespace: apps
