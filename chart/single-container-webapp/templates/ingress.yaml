@@ -12,7 +12,7 @@ metadata:
     gethomepage.dev/name: {{ default (.Values.name | replace "-" " " | title) .Values.homepage.name | quote }}
     gethomepage.dev/description: {{ default (printf "%s deployed application" (.Values.name | replace "-" " " | title)) .Values.homepage.description | quote }}
     gethomepage.dev/icon: {{ default (printf "https://%s/favicon.ico" .Values.route.host) .Values.homepage.icon | quote }}
-    gethomepage.dev/href: {{ printf "https://%s%s" .Values.route.host .Values.route.path | quote }}
+    gethomepage.dev/href: {{ .Values.homepage.href | default (printf "https://%s%s" .Values.route.host .Values.route.path) | quote }}
     gethomepage.dev/siteMonitor: {{ printf "https://%s%s" .Values.route.host .Values.route.path | quote }}
     gethomepage.dev/app: {{ include "single-container-webapp.name" . | quote }}
     gethomepage.dev/pod-selector: {{ printf "app.kubernetes.io/name=%s" (include "single-container-webapp.name" .) | quote }}

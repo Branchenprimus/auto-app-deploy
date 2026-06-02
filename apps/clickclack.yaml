@@ -15,6 +15,8 @@ route:
 homepage:
   description: Team chat and bot collaboration app
   icon: https://clickclack.darwin-labs.org/favicon.svg
+  # "/" is ClickClack's marketing landing page; the chat app lives at "/app".
+  href: https://clickclack.darwin-labs.org/app
 # ClickClack ships its own auth (magic-link / GitHub OAuth) and a public
 # landing page at "/", so we do NOT gate it behind Cloudflare Access.
 access:

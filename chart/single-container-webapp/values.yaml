@@ -22,6 +22,10 @@ homepage:
   description: ""
   icon: ""
   weight: ""
+  # Override the homepage tile link. Defaults to https://<route.host><route.path>.
+  # Set this when the app's landing path differs from the homepage target
+  # (e.g. a marketing root at "/" but the app lives at "/app").
+  href: ""
 
 resources:
   requests:
