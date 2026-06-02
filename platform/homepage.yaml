@@ -53,7 +53,7 @@ data:
             href: https://argocd.darwin-labs.org
             siteMonitor: https://argocd.darwin-labs.org
             description: GitOps deployment control plane
-            icon: argocd.png
+            icon: https://cdn.simpleicons.org/argo/EF7B4D
         - Homepage:
             href: https://homepage.darwin-labs.org
             siteMonitor: https://homepage.darwin-labs.org
@@ -74,7 +74,7 @@ data:
             href: https://github.com/Branchenprimus/auto-app-deploy/actions
             siteMonitor: https://github.com/Branchenprimus/auto-app-deploy/actions
             description: Cloudflare Access and platform workflows
-            icon: github-actions.png
+            icon: https://cdn.simpleicons.org/githubactions/2088FF
         - GHCR Packages:
             href: https://github.com/orgs/Branchenprimus/packages
             siteMonitor: https://github.com/orgs/Branchenprimus/packages
@@ -90,8 +90,8 @@ data:
             description: Planned log exploration
             icon: loki.png
         - Cloudflare Zero Trust:
-            href: https://one.dash.cloudflare.com
-            siteMonitor: https://one.dash.cloudflare.com
+            href: https://dash.cloudflare.com/79adc4436321f0f308e68f5529f190bc/one/overview/dashboard?duration=24h
+            siteMonitor: https://dash.cloudflare.com/79adc4436321f0f308e68f5529f190bc/one/overview/dashboard?duration=24h
             description: Access policies and tunnel status
             icon: cloudflare.png
   widgets.yaml: |
@@ -135,13 +135,94 @@ data:
       box-shadow: 0 24px 60px rgba(139, 92, 246, 0.28) !important;
     }
 
+    .repo-link-button {
+      position: absolute;
+      right: 0.75rem;
+      bottom: 0.75rem;
+      z-index: 20;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 1.75rem;
+      padding: 0.25rem 0.55rem;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 0.375rem;
+      background: rgba(15, 23, 42, 0.72);
+      color: rgb(226, 232, 240);
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1;
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+    }
+
+    .repo-link-button:hover {
+      background: rgba(79, 70, 229, 0.78);
+      color: white;
+    }
+
+    .service-card:has(.repo-link-button) .service-title {
+      padding-bottom: 1.9rem;
+    }
+
     #information-widgets h2,
     .services-group h2,
     [class*="services"] h2 {
       letter-spacing: 0.08em;
       text-shadow: 0 0 24px rgba(139, 92, 246, 0.5);
     }
-  custom.js: ""
+  custom.js: |
+    (() => {
+      const reposByHost = {
+        "clickclack.darwin-labs.org": "https://github.com/Branchenprimus/clickclack",
+        "flashcards.darwin-labs.org": "https://github.com/Branchenprimus/flashcards",
+        "gh-issue-pipeline.darwin-labs.org": "https://github.com/Branchenprimus/gh-issue-pipeline",
+        "simple-notes.darwin-labs.org": "https://github.com/Branchenprimus/simple-notes",
+        "training-planner.darwin-labs.org": "https://github.com/Branchenprimus/training-planner",
+        "triathlon-race-planner.darwin-labs.org": "https://github.com/Branchenprimus/triathlon-race-planner",
+        "usc-crawler.darwin-labs.org": "https://github.com/Branchenprimus/usc-crawler"
+      };
+
+      const appHostFromCard = (card) => {
+        const anchors = [...card.querySelectorAll("a[href]")];
+        const appAnchor = anchors.find((anchor) => {
+          try {
+            return new URL(anchor.href).hostname.endsWith(".darwin-labs.org");
+          } catch {
+            return false;
+          }
+        });
+
+        if (!appAnchor) return "";
+        return new URL(appAnchor.href).hostname;
+      };
+
+      const addRepoButtons = () => {
+        document.querySelectorAll(".service-card").forEach((card) => {
+          if (card.querySelector(".repo-link-button")) return;
+
+          const repoUrl = reposByHost[appHostFromCard(card)];
+          if (!repoUrl) return;
+
+          const button = document.createElement("a");
+          button.className = "repo-link-button";
+          button.href = repoUrl;
+          button.target = "_blank";
+          button.rel = "noreferrer";
+          button.textContent = "GitHub";
+          button.setAttribute("aria-label", "Open GitHub repository");
+          button.addEventListener("click", (event) => event.stopPropagation());
+
+          card.appendChild(button);
+        });
+      };
+
+      addRepoButtons();
+      new MutationObserver(addRepoButtons).observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    })();
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

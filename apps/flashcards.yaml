@@ -10,7 +10,7 @@ route:
   path: /
 homepage:
   description: Flashcard learning app
-  icon: https://flashcards.darwin-labs.org/favicon.ico
+  icon: https://flashcards.darwin-labs.org/static/favicon.svg
 access:
   enabled: true
 resources:
