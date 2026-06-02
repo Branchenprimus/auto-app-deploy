@@ -1,0 +1,140 @@
+name: Track ClickClack upstream
+
+# Consume-only upstream tracker for openclaw/clickclack.
+# Upstream ships rolling `main` (no release tags), so we watch its HEAD,
+# build a pinned arm64 image, and open a PR bumping apps/clickclack.yaml.
+# Merging the PR is the deploy gate (ArgoCD syncs on merge).
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # daily 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Upstream ref to build"
+        required: false
+        default: "main"
+      force:
+        description: "Build & push even if unchanged; skip the PR (use for first bootstrap build)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write # push the PR branch
+  packages: write # push image to GHCR
+  pull-requests: write # open the deploy PR
+
+env:
+  UPSTREAM: openclaw/clickclack
+  IMAGE: ghcr.io/branchenprimus/clickclack
+  APP_FILE: apps/clickclack.yaml
+
+# NOTE: builds upstream's heavy multi-stage Dockerfile (pnpm/Vite + Go) for
+# linux/arm64 under QEMU emulation — expect a long build on hosted runners.
+# For speed, switch `runs-on` to a self-hosted arm64 runner on the cluster.
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Resolve upstream commit
+        id: up
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ref="${{ github.event.inputs.ref || 'main' }}"
+          sha="$(gh api "repos/$UPSTREAM/commits/$ref" --jq .sha)"
+          short="${sha:0:7}"
+          tag="$(date -u +%Y%m%d)-$short"
+          echo "sha=$sha"     >> "$GITHUB_OUTPUT"
+          echo "short=$short" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag"     >> "$GITHUB_OUTPUT"
+          echo "Upstream $UPSTREAM@$ref -> $sha (image tag: $tag)"
+
+      - name: Decide whether to build
+        id: decide
+        run: |
+          force="${{ github.event.inputs.force || 'false' }}"
+          if [ "$force" = "true" ]; then
+            echo "build=true"  >> "$GITHUB_OUTPUT"
+            echo "pr=false"    >> "$GITHUB_OUTPUT"
+            echo "Forced build; PR will be skipped."
+            exit 0
+          fi
+          if [ ! -f "$APP_FILE" ]; then
+            echo "::error::$APP_FILE is missing. Run once with force=true to bootstrap the first image, then commit $APP_FILE."
+            exit 1
+          fi
+          cur="$(yq '.image.tag' "$APP_FILE")"
+          echo "Current deployed tag: $cur"
+          if [ "${cur##*-}" = "${{ steps.up.outputs.short }}" ]; then
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            echo "pr=false"    >> "$GITHUB_OUTPUT"
+            echo "Already at upstream ${{ steps.up.outputs.short }} — nothing to do."
+          else
+            echo "build=true"  >> "$GITHUB_OUTPUT"
+            echo "pr=true"     >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Login to GHCR
+        if: steps.decide.outputs.build == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout upstream source
+        if: steps.decide.outputs.build == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.UPSTREAM }}
+          ref: ${{ steps.up.outputs.sha }}
+          path: upstream
+
+      - name: Set up QEMU
+        if: steps.decide.outputs.build == 'true'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: steps.decide.outputs.build == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push arm64 image
+        if: steps.decide.outputs.build == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: upstream
+          platforms: linux/arm64
+          push: true
+          tags: ${{ env.IMAGE }}:${{ steps.up.outputs.tag }}
+          build-args: |
+            CLICKCLACK_WEB_VERSION=${{ steps.up.outputs.tag }}
+
+      - name: Bump app tag
+        if: steps.decide.outputs.pr == 'true'
+        run: yq -i '.image.tag = "${{ steps.up.outputs.tag }}"' "$APP_FILE"
+
+      - name: Open deploy PR
+        if: steps.decide.outputs.pr == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: track/clickclack-${{ steps.up.outputs.tag }}
+          base: main
+          commit-message: "Deploy clickclack ${{ steps.up.outputs.tag }}"
+          title: "Deploy ClickClack ${{ steps.up.outputs.tag }} (upstream ${{ steps.up.outputs.short }})"
+          body: |
+            Automated upstream tracker for `${{ env.UPSTREAM }}`.
+
+            - Upstream commit: `${{ env.UPSTREAM }}@${{ steps.up.outputs.sha }}`
+            - Image: `${{ env.IMAGE }}:${{ steps.up.outputs.tag }}` (linux/arm64, already pushed)
+
+            Merging this PR deploys to k3s via ArgoCD.
