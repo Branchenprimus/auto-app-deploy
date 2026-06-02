@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# =============================================================================
+# pull_open_issues.sh — snapshot open GitHub issues for every registered app.
+#
+# Run with no args:   ./scripts/pull_open_issues.sh
+# For each app in apps/*.yaml it resolves the GitHub repo, prints an open/
+# closed issue summary table, and writes open issues as JSON into
+# <repo>/issues/ (auto-added to that repo's .gitignore).
+# Requires: gh (authenticated).
+# =============================================================================
 
 set -euo pipefail
 

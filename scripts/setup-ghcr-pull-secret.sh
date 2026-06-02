@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# =============================================================================
+# setup-ghcr-pull-secret.sh — create the GHCR image-pull secret in the cluster.
+#
+# Interactive; run with no args:   ./scripts/setup-ghcr-pull-secret.sh
+# Prompts for namespace / secret name / registry / GitHub username and a token
+# (PAT with read:packages), then creates the docker-registry pull secret
+# (default "ghcr-pull" in "apps") that private app images reference.
+# Requires: kubectl (pointed at the target cluster).
+# =============================================================================
 set -euo pipefail
 
 DEFAULT_NAMESPACE="apps"

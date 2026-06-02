@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 """Render Homepage repository cards from registered app manifests."""
 
+# =============================================================================
+# render-homepage-repositories.py — regenerate the homepage "Repositories" cards
+# from apps/*.yaml.
+#
+# Run with no args:   ./scripts/render-homepage-repositories.py
+# Rewrites the block between the "BEGIN/END GENERATED REPOSITORIES" markers in
+# platform/homepage.yaml, emitting one GitHub repo card per app. Commit the
+# result. Requires: python3 (PyYAML optional; falls back to a simple parser).
+# =============================================================================
+
 from __future__ import annotations
 
 import re

@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# =============================================================================
+# create-release.sh — cut the next version tag and watch it deploy.
+#
+#   ./scripts/create-release.sh                    # pick a repo interactively
+#   ./scripts/create-release.sh --project=<repo>   # target one repo, no prompts
+#   ./scripts/create-release.sh --auto             # accept all default prompts
+# Tags vX.Y.Z, pushes it, watches the GitHub Actions build, then reports the
+# ArgoCD / Kubernetes rollout. Worktree must be clean. Requires: git, gh.
+# =============================================================================
 set -euo pipefail
 
 DEFAULT_PROJECTS_DIR="/home/jan/projects"

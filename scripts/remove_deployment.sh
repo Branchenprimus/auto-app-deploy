@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# =============================================================================
+# remove_deployment.sh — unregister an app from this GitOps repo.
+#
+#   ./scripts/remove_deployment.sh <app-name|apps/<app>.yaml>
+# Deletes apps/<app>.yaml, refreshes the Terraform app mirror, optionally
+# removes the ArgoCD Application + k8s workload, and can Terraform-apply to drop
+# the Cloudflare Access app. Does NOT delete the source repo or container images.
+# Env: ARGOCD_NAMESPACE (default argocd). Requires: git, kubectl (+ terraform).
+# =============================================================================
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

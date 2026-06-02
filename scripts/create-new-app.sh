@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+# =============================================================================
+# create-new-app.sh — scaffold a new GitOps app and register it for deployment.
+#
+# Interactive; run with no args:   ./scripts/create-new-app.sh
+# Prompts for app path/name/host/port, then writes app.yaml + a release GitHub
+# Actions workflow, creates the GitHub repo, sets the GITOPS_TOKEN secret (read
+# from KeePassXC), and optionally pushes and adds the app to the homepage.
+# Next step: cut a release with create-release.sh to build & deploy.
+# Requires: git, gh (authenticated), keepassxc-cli, python3.
+# =============================================================================
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# =============================================================================
+# setup-gitops-token-store.sh — store the GITOPS_TOKEN in a KeePassXC database.
+#
+# Interactive; run with no args:   ./scripts/setup-gitops-token-store.sh
+# Creates (or reuses) the KeePassXC DB and saves your GitHub GITOPS_TOKEN under
+# the GITOPS_TOKEN entry — which create-new-app.sh reads when provisioning repos.
+# Default DB: ~/.config/auto-app-deploy/secrets.kdbx. Requires: keepassxc-cli.
+# =============================================================================
 set -euo pipefail
 
 DEFAULT_DB_PATH="/home/jan/.config/auto-app-deploy/secrets.kdbx"
