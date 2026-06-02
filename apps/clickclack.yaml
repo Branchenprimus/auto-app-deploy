@@ -17,10 +17,17 @@ homepage:
   icon: https://clickclack.darwin-labs.org/favicon.svg
   # "/" is ClickClack's marketing landing page; the chat app lives at "/app".
   href: https://clickclack.darwin-labs.org/app
-# ClickClack ships its own auth (magic-link / GitHub OAuth) and a public
-# landing page at "/", so we do NOT gate it behind Cloudflare Access.
+# Gated behind Cloudflare Access (Google IdP) — same perimeter as the other
+# protected apps. NOTE: this gates the whole host incl. /api, so the OpenClaw
+# bot must reach ClickClack via the in-cluster service URL
+# (http://clickclack.apps.svc.cluster.local:8080) with its ccb_ token, not the
+# public host.
 access:
-  enabled: false
+  enabled: true
+  name: ClickClack
+  policy_name: ClickClack Google login
+  app_launcher_visible: true
+  session_duration: 24h
 resources:
   requests:
     cpu: 100m
