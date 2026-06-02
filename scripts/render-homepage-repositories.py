@@ -19,6 +19,9 @@ APPS_DIR = ROOT / "apps"
 HOMEPAGE_MANIFEST = ROOT / "platform" / "homepage.yaml"
 BEGIN = "    # BEGIN GENERATED REPOSITORIES"
 END = "    # END GENERATED REPOSITORIES"
+DISPLAY_NAMES = {
+    "clickclack": "ClickClack",
+}
 
 
 def title_from_slug(slug: str) -> str:
@@ -88,7 +91,7 @@ def repository_cards() -> list[dict[str, str]]:
 
         cards.append(
             {
-                "title": str(homepage.get("name") or title_from_slug(name)),
+                "title": str(homepage.get("name") or DISPLAY_NAMES.get(name) or title_from_slug(name)),
                 "slug": name,
                 "url": repo_url,
             }

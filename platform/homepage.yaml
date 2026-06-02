@@ -85,7 +85,7 @@ data:
             icon: docker.png
     # BEGIN GENERATED REPOSITORIES
     - Repositories:
-        - Clickclack:
+        - ClickClack:
             href: https://github.com/branchenprimus/clickclack
             siteMonitor: https://github.com/branchenprimus/clickclack
             description: Source repository for clickclack
