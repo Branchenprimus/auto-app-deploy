@@ -13,7 +13,7 @@ route:
 homepage:
   name: USC Crawler
   description: USC search and crawl app
-  icon: https://usc-crawler.darwin-labs.org/favicon.svg
+  icon: /icons/usc-crawler.svg
 access:
   enabled: true
 resources:

@@ -120,7 +120,7 @@ def render_section(cards: list[dict[str, str]]) -> str:
                 f"            href: {card['url']}",
                 f"            siteMonitor: {card['url']}",
                 f"            description: Source repository for {card['slug']}",
-                "            icon: github.png",
+                "            icon: /icons/github.svg",
             ]
         )
 

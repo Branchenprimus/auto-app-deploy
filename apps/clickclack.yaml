@@ -14,7 +14,7 @@ route:
   path: /
 homepage:
   description: Team chat and bot collaboration app
-  icon: https://clickclack.darwin-labs.org/favicon.svg
+  icon: /icons/clickclack.svg
   # "/" is ClickClack's marketing landing page; the chat app lives at "/app".
   href: https://clickclack.darwin-labs.org/app
 # Gated behind Cloudflare Access (Google IdP) — same perimeter as the other

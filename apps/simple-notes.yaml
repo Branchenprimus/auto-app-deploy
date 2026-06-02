@@ -12,7 +12,7 @@ route:
   path: /
 homepage:
   description: Notes app
-  icon: https://simple-notes.darwin-labs.org/favicon.svg
+  icon: /icons/simple-notes.svg
 access:
   enabled: true
 resources:

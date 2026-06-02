@@ -13,7 +13,7 @@ route:
   path: /
 homepage:
   description: Race planning app
-  icon: https://triathlon-race-planner.darwin-labs.org/favicon.svg
+  icon: /icons/triathlon-race-planner.svg
 
 access:
   enabled: true
