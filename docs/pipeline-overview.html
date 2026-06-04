@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>auto-app-deploy — Pipeline Overview</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --accent: #58a6ff;
+      --accent2: #3fb950;
+      --accent3: #d2a8ff;
+      --accent4: #ffa657;
+      --accent5: #f85149;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --card-bg: #1c2128;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ─── Header ──────────────────────────────────────────── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header .logo { font-size: 22px; font-weight: 700; color: var(--accent); }
+    header .sub  { color: var(--muted); font-size: 14px; }
+
+    /* ─── Nav tabs ────────────────────────────────────────── */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+    }
+    nav a {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 12px 16px;
+      text-decoration: none;
+      transition: color .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    nav a:hover  { color: var(--text); }
+    nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ─── Main layout ─────────────────────────────────────── */
+    main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ─── Page title ──────────────────────────────────────── */
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .lead { color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+
+    /* ─── Cards ───────────────────────────────────────────── */
+    .cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      cursor: pointer;
+      transition: border-color .2s, transform .15s;
+      position: relative;
+    }
+    .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .card.open  { border-color: var(--accent); }
+    .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .card-icon { font-size: 22px; }
+    .card-title { font-size: 16px; font-weight: 600; }
+    .card-desc  { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .card-body  { margin-top: 14px; font-size: 13px; line-height: 1.7; display: none; border-top: 1px solid var(--border); padding-top: 14px; }
+    .card.open .card-body { display: block; }
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin: 2px 2px 2px 0;
+    }
+    .tag-blue   { background: #1f3a5f; color: var(--accent); }
+    .tag-green  { background: #1a3a2a; color: var(--accent2); }
+    .tag-purple { background: #2d1f4a; color: var(--accent3); }
+    .tag-orange { background: #3d2a0f; color: var(--accent4); }
+    .tag-red    { background: #3a1a1a; color: var(--accent5); }
+
+    /* ─── Pipeline flow diagram ───────────────────────────── */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .flow-step {
+      display: flex;
+      gap: 0;
+      align-items: stretch;
+    }
+    .flow-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 40px;
+      flex-shrink: 0;
+    }
+    .flow-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: var(--bg);
+      flex-shrink: 0;
+      margin-top: 20px;
+    }
+    .flow-line {
+      width: 2px;
+      background: var(--border);
+      flex: 1;
+      margin: 0 auto;
+    }
+    .flow-card {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 8px 0;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .flow-card:hover { border-color: var(--accent); }
+    .flow-card.open  { border-color: var(--accent); }
+    .flow-card-header { display: flex; align-items: center; justify-content: space-between; }
+    .flow-card-title  { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .flow-card-body   { display: none; margin-top: 12px; font-size: 13px; color: var(--muted); line-height: 1.7; border-top: 1px solid var(--border); padding-top: 12px; }
+    .flow-card.open .flow-card-body { display: block; }
+    .chevron { color: var(--muted); transition: transform .2s; }
+    .flow-card.open .chevron { transform: rotate(180deg); }
+
+    /* ─── Tokens table ────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-weight: 600;
+    }
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.6;
+    }
+    tr:nth-child(even) td { background: #12171e; }
+    code {
+      background: #1f2937;
+      color: var(--accent3);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+    }
+    pre {
+      background: #1f2937;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.6;
+      margin-top: 10px;
+    }
+    pre code { background: none; padding: 0; font-size: inherit; }
+
+    /* ─── Apps list ───────────────────────────────────────── */
+    .app-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+    .app-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .app-name   { font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+    .app-host   { font-size: 12px; color: var(--accent); }
+    .app-detail { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .badge {
+      display: inline-block; font-size: 11px; padding: 1px 7px;
+      border-radius: 4px; font-weight: 600;
+    }
+    .badge-on  { background: #1a3a2a; color: var(--accent2); }
+    .badge-off { background: #2a2a1a; color: var(--accent4); }
+
+    .section-title { font-size: 18px; font-weight: 700; margin: 28px 0 12px; }
+    .info-box {
+      background: #1f2937;
+      border-left: 3px solid var(--accent);
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+      color: var(--muted);
+    }
+    .info-box strong { color: var(--text); }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="logo">auto-app-deploy</span>
+  <span class="sub">DevOps Pipeline Overview</span>
+</header>
+
+<nav aria-label="Page sections">
+  <a class="active" href="#overview" data-section="overview">Overview</a>
+  <a href="#flow" data-section="flow">Deployment Flow</a>
+  <a href="#components" data-section="components">Components</a>
+  <a href="#secrets" data-section="secrets">Secrets &amp; Tokens</a>
+  <a href="#apps" data-section="apps">Registered Apps</a>
+  <a href="#onboard" data-section="onboard">Onboarding</a>
+</nav>
+
+<main>
+
+  <!-- ════════════════════════════════════════════════════════ OVERVIEW -->
+  <section id="overview" class="section active">
+    <h1>Platform Overview</h1>
+    <p class="lead">
+      A fully automated GitOps pipeline that builds, ships, and secures web applications
+      on a Raspberry Pi k3s cluster — driven entirely by Git tags.
+    </p>
+
+    <div class="cards">
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header">
+          <span class="card-icon">⚙️</span>
+          <span class="card-title">GitOps Source of Truth</span>
+        </div>
+        <p class="card-desc">All desired state lives in <code>apps/*.yaml</code>. No manual cluster commands needed.</p>
+        <div class="card-body">
+          Each app is described by a single YAML file in <code>apps/</code>. Pushing a new tag is the only manual action
+          a developer needs to take — the rest of the pipeline is fully automated.<br/><br/>
+          <span class="tag tag-blue">ArgoCD</span>
+          <span class="tag tag-green">Helm</span>
+          <span class="tag tag-orange">GitHub Actions</span>
+        </div>
+      </div>
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header">
+          <span class="card-icon">🐳</span>
+          <span class="card-title">Container Registry</span>
+        </div>
+        <p class="card-desc">Images are built for <code>linux/arm64</code> and pushed to GitHub Container Registry (GHCR).</p>
+        <div class="card-body">
+          The GitHub Actions release workflow uses Docker Buildx + QEMU to cross-compile images
+          for the Raspberry Pi's ARM64 architecture and pushes them to
+          <code>ghcr.io/branchenprimus/&lt;app&gt;:vX.Y.Z</code>.<br/><br/>
+          <span class="tag tag-blue">GHCR</span>
+          <span class="tag tag-orange">linux/arm64</span>
+          <span class="tag tag-green">Buildx + QEMU</span>
+        </div>
+      </div>
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header">
+          <span class="card-icon">☸️</span>
+          <span class="card-title">k3s on Raspberry Pi</span>
+        </div>
+        <p class="card-desc">Lightweight Kubernetes with Traefik ingress. All apps run in the <code>apps</code> namespace.</p>
+        <div class="card-body">
+          k3s runs on a single Raspberry Pi with Traefik as the bundled ingress controller.
+          ArgoCD manages all workloads using a shared Helm chart that provisions a Deployment,
+          Service, Ingress, and optionally a PersistentVolumeClaim per app.<br/><br/>
+          <span class="tag tag-blue">k3s</span>
+          <span class="tag tag-green">Traefik</span>
+          <span class="tag tag-purple">ArgoCD</span>
+        </div>
+      </div>
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header">
+          <span class="card-icon">☁️</span>
+          <span class="card-title">Cloudflare Tunnel + Zero Trust</span>
+        </div>
+        <p class="card-desc">A wildcard tunnel exposes all <code>*.darwin-labs.org</code> apps behind Cloudflare Access.</p>
+        <div class="card-body">
+          Traffic flows: <strong>Browser → Cloudflare Tunnel → Cloudflare Access (Google login) → Traefik → Kubernetes pod.</strong><br/><br/>
+          Cloudflare Access policies are managed by Terraform (HCP Terraform Cloud) and automatically
+          applied whenever <code>apps/*.yaml</code> changes on main.<br/><br/>
+          <span class="tag tag-orange">Cloudflare Tunnel</span>
+          <span class="tag tag-red">Zero Trust</span>
+          <span class="tag tag-purple">Terraform</span>
+          <span class="tag tag-blue">Google IdP</span>
+        </div>
+      </div>
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header">
+          <span class="card-icon">🏠</span>
+          <span class="card-title">Homepage Discovery</span>
+        </div>
+        <p class="card-desc">Apps appear on the internal dashboard automatically via Ingress annotations — no manual config.</p>
+        <div class="card-body">
+          The shared Helm chart injects Homepage annotations into every Ingress resource.
+          After ArgoCD syncs a new app, Homepage discovers it automatically from the Kubernetes API.
+          Custom labels, descriptions, and icons can be set in <code>app.yaml</code>.<br/><br/>
+          <span class="tag tag-green">Auto-discovery</span>
+          <span class="tag tag-blue">Ingress annotations</span>
+        </div>
+      </div>
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header">
+          <span class="card-icon">🔐</span>
+          <span class="card-title">Secret Management</span>
+        </div>
+        <p class="card-desc">All tokens are stored in KeePassXC and injected at runtime via shell scripts or GitHub Secrets.</p>
+        <div class="card-body">
+          The <code>scripts/setup-gitops-token-store.sh</code> script bootstraps a KeePassXC database at
+          <code>~/.config/auto-app-deploy/secrets.kdbx</code>. Individual tokens are then read by automation
+          scripts and stored as GitHub repository secrets.<br/><br/>
+          <span class="tag tag-red">KeePassXC</span>
+          <span class="tag tag-orange">GitHub Secrets</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════ FLOW -->
+  <section id="flow" class="section">
+    <h1>Deployment Flow</h1>
+    <p class="lead">Click any step to expand details. A release is triggered by pushing a Git tag — everything else is automated.</p>
+
+    <div class="flow">
+
+      <div class="flow-step">
+        <div class="flow-connector"><div class="flow-dot" style="border-color:#58a6ff"></div><div class="flow-line"></div></div>
+        <div class="flow-card" onclick="toggleFlow(this)">
+          <div class="flow-card-header">
+            <div class="flow-card-title"><span>1.</span> Developer pushes a release tag</div>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="flow-card-body">
+            The developer runs <code>git tag v0.1.0 &amp;&amp; git push origin v0.1.0</code> (or uses
+            <code>scripts/create-release.sh</code> which automates tagging, watches Actions, and polls
+            ArgoCD / kubectl for rollout status).<br/><br/>
+            The tag push triggers the app repo's GitHub Actions release workflow.
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-connector"><div class="flow-dot" style="border-color:#3fb950"></div><div class="flow-line"></div></div>
+        <div class="flow-card" onclick="toggleFlow(this)">
+          <div class="flow-card-header">
+            <div class="flow-card-title"><span>2.</span> GitHub Actions — Build &amp; Push image to GHCR</div>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="flow-card-body">
+            The release workflow (<code>app-template/.github/workflows/release.yaml</code>) runs on <code>ubuntu-latest</code>:<br/><br/>
+            • Reads <code>app.yaml</code> for the image repository name.<br/>
+            • Logs into GHCR using the built-in <code>GITHUB_TOKEN</code>.<br/>
+            • Sets up QEMU + Docker Buildx for cross-compilation.<br/>
+            • Builds and pushes <code>ghcr.io/branchenprimus/&lt;app&gt;:vX.Y.Z</code> for <code>linux/arm64</code>.
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-connector"><div class="flow-dot" style="border-color:#ffa657"></div><div class="flow-line"></div></div>
+        <div class="flow-card" onclick="toggleFlow(this)">
+          <div class="flow-card-header">
+            <div class="flow-card-title"><span>3.</span> GitHub Actions — Update GitOps repo</div>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="flow-card-body">
+            Same workflow checks out <code>Branchenprimus/auto-app-deploy</code> using <code>GITOPS_TOKEN</code> and:<br/><br/>
+            • Copies <code>app.yaml</code> into <code>apps/&lt;name&gt;.yaml</code>.<br/>
+            • Sets <code>image.tag</code> to the new version tag.<br/>
+            • Sets <code>namespace: apps</code> and <code>image.pullPolicy: IfNotPresent</code>.<br/>
+            • Commits and pushes to <code>main</code> with message <em>"Deploy &lt;app&gt; vX.Y.Z"</em>.
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-connector"><div class="flow-dot" style="border-color:#d2a8ff"></div><div class="flow-line"></div></div>
+        <div class="flow-card" onclick="toggleFlow(this)">
+          <div class="flow-card-header">
+            <div class="flow-card-title"><span>4.</span> ArgoCD detects change &amp; syncs</div>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="flow-card-body">
+            ArgoCD watches the <code>main</code> branch of <code>auto-app-deploy</code>. Its ApplicationSet
+            generator scans <code>apps/*.yaml</code> and creates or updates one ArgoCD Application per file.<br/><br/>
+            With <code>automated: prune: true, selfHeal: true</code>, ArgoCD immediately applies any diff
+            between the desired state in Git and the live cluster state — no manual sync needed.
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-connector"><div class="flow-dot" style="border-color:#3fb950"></div><div class="flow-line"></div></div>
+        <div class="flow-card" onclick="toggleFlow(this)">
+          <div class="flow-card-header">
+            <div class="flow-card-title"><span>5.</span> Helm renders Kubernetes resources</div>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="flow-card-body">
+            ArgoCD renders <code>chart/single-container-webapp</code> using the app's <code>apps/*.yaml</code>
+            as Helm values. This produces:<br/><br/>
+            • <strong>Deployment</strong> — pulls the new image tag, sets env vars, resource limits.<br/>
+            • <strong>Service</strong> — ClusterIP service pointing to the container port.<br/>
+            • <strong>Ingress</strong> — Traefik ingress with Homepage annotations and the app hostname.<br/>
+            • <strong>PersistentVolumeClaim</strong> (optional) — only if <code>persistence.enabled: true</code>.
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-connector"><div class="flow-dot" style="border-color:#58a6ff"></div><div class="flow-line"></div></div>
+        <div class="flow-card" onclick="toggleFlow(this)">
+          <div class="flow-card-header">
+            <div class="flow-card-title"><span>6.</span> Cloudflare Access workflow triggers</div>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="flow-card-body">
+            A separate GitHub Actions workflow (<code>.github/workflows/cloudflare-access.yaml</code>)
+            fires whenever <code>apps/*.yaml</code> changes on main.<br/><br/>
+            It copies the YAML files into <code>terraform/cloudflare-access/apps/</code> and runs
+            <code>terraform apply</code> via HCP Terraform Cloud using <code>TF_API_TOKEN</code> and
+            <code>CLOUDFLARE_API_TOKEN</code>. This creates or updates Cloudflare Access Applications
+            for each app that has <code>access.enabled: true</code>.
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-connector"><div class="flow-dot" style="border-color:#f85149"></div><div class="flow-line"></div></div>
+        <div class="flow-card" onclick="toggleFlow(this)">
+          <div class="flow-card-header">
+            <div class="flow-card-title"><span>7.</span> Traffic routing to the running pod</div>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="flow-card-body">
+            User traffic follows this path:<br/><br/>
+            <strong>Browser</strong> → <strong>Cloudflare Tunnel</strong> (wildcard <code>*.darwin-labs.org → localhost:80</code>)
+            → <strong>Cloudflare Access</strong> (Google login check)
+            → <strong>Traefik</strong> (routes by hostname)
+            → <strong>Kubernetes Service</strong>
+            → <strong>App pod</strong>.<br/><br/>
+            The GHCR pull secret (<code>ghcr-pull</code>) is used by the pod to pull the private image.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════ COMPONENTS -->
+  <section id="components" class="section">
+    <h1>Platform Components</h1>
+    <p class="lead">The platform is assembled from these individual pieces, each with a single responsibility.</p>
+
+    <div class="cards">
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header"><span class="card-icon">📁</span><span class="card-title">apps/*.yaml</span></div>
+        <p class="card-desc">One file per app. The single source of truth for desired deployment state.</p>
+        <div class="card-body">
+          Each file is copied from the app repo's <code>app.yaml</code> by the release workflow,
+          with <code>image.tag</code> updated to the new release. Contains image repository, container port,
+          route hostname, resource requests/limits, optional persistence, and Cloudflare Access flag.
+          <pre><code>name: my-app
+image:
+  repository: ghcr.io/branchenprimus/my-app
+  tag: v0.2.0
+container:
+  port: 80
+route:
+  host: my-app.darwin-labs.org
+access:
+  enabled: true</code></pre>
+        </div>
+      </div>
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header"><span class="card-icon">⎈</span><span class="card-title">ArgoCD ApplicationSet</span></div>
+        <p class="card-desc">Dynamically generates one ArgoCD Application per <code>apps/*.yaml</code> file.</p>
+        <div class="card-body">
+          Uses the <strong>Git files generator</strong> to watch <code>apps/*.yaml</code>.
+          Each generated Application points to the shared Helm chart at <code>chart/single-container-webapp</code>
+          and uses the matching <code>apps/*.yaml</code> as its Helm values file.
+          Auto-sync with prune and self-heal means the cluster always converges to Git state.
+        </div>
+      </div>
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header"><span class="card-icon">📦</span><span class="card-title">Helm Chart: single-container-webapp</span></div>
+        <p class="card-desc">Shared chart that renders all Kubernetes resources for any single-container web app.</p>
+        <div class="card-body">
+          Templates: <code>deployment.yaml</code>, <code>service.yaml</code>, <code>ingress.yaml</code>, <code>pvc.yaml</code>.<br/><br/>
+          The ingress template injects Homepage annotations automatically so the app dashboard
+          discovers new apps without additional config. PVC is only rendered when
+          <code>persistence.enabled: true</code>.
+        </div>
+      </div>
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header"><span class="card-icon">🔄</span><span class="card-title">Release Workflow</span></div>
+        <p class="card-desc">GitHub Actions workflow triggered by <code>v*</code> tags. Builds image, updates GitOps.</p>
+        <div class="card-body">
+          Runs on <code>ubuntu-latest</code>. Steps:<br/>
+          1. Checkout app repo.<br/>
+          2. Read <code>name</code> and <code>image.repository</code> from <code>app.yaml</code> via yq.<br/>
+          3. Login to GHCR with <code>GITHUB_TOKEN</code>.<br/>
+          4. Build &amp; push ARM64 image.<br/>
+          5. Checkout <code>auto-app-deploy</code> with <code>GITOPS_TOKEN</code>.<br/>
+          6. Update and commit <code>apps/&lt;name&gt;.yaml</code>.
+        </div>
+      </div>
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header"><span class="card-icon">🌐</span><span class="card-title">Cloudflare Tunnel</span></div>
+        <p class="card-desc">Single wildcard tunnel routes all <code>*.darwin-labs.org</code> traffic to Traefik on port 80.</p>
+        <div class="card-body">
+          Configured once on the platform level. The tunnel runs on the Pi and forwards all subdomains
+          to <code>localhost:80</code> (Traefik). Per-app hostnames are handled by Traefik's
+          Ingress routing rules, so no tunnel changes are needed when adding new apps.
+        </div>
+      </div>
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header"><span class="card-icon">🔒</span><span class="card-title">Cloudflare Zero Trust Access</span></div>
+        <p class="card-desc">Per-app Access Applications enforce Google login before requests reach the cluster.</p>
+        <div class="card-body">
+          Managed by Terraform (HCP Terraform Cloud workspace <em>cloudflare-access</em>).
+          The <code>cloudflare-access.yaml</code> GitHub Actions workflow syncs <code>apps/*.yaml</code>
+          into Terraform and runs <code>terraform apply</code> automatically.
+          Apps with <code>access.enabled: false</code> are publicly reachable.
+        </div>
+      </div>
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header"><span class="card-icon">🏠</span><span class="card-title">Homepage</span></div>
+        <p class="card-desc">Auto-discovers deployed apps from Kubernetes Ingress annotations. Protected by Cloudflare Access.</p>
+        <div class="card-body">
+          Deployed via <code>kubectl apply -f platform/homepage.yaml</code>. Accessible at
+          <code>https://homepage.darwin-labs.org</code>. Discovery is fully automatic from Ingress
+          annotations — no manual YAML entries needed. Custom name, description, and icon can be set
+          in <code>app.yaml</code> under the <code>homepage:</code> key.
+        </div>
+      </div>
+
+      <div class="card" onclick="toggleCard(this)">
+        <div class="card-header"><span class="card-icon">📜</span><span class="card-title">Automation Scripts</span></div>
+        <p class="card-desc">Shell scripts for bootstrapping the platform and creating new apps.</p>
+        <div class="card-body">
+          <strong>setup-gitops-token-store.sh</strong> — creates the KeePassXC database and stores the GitOps PAT.<br/>
+          <strong>create-new-app.sh</strong> — interactive wizard: creates/prepares app repo, writes <code>app.yaml</code>,
+          copies release workflow, sets issue labels and GitHub secret.<br/>
+          <strong>create-release.sh</strong> — tags, pushes, watches Actions + ArgoCD rollout.<br/>
+          <strong>setup-ghcr-pull-secret.sh</strong> — creates the <code>ghcr-pull</code> Kubernetes secret.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════ SECRETS -->
+  <section id="secrets" class="section">
+    <h1>Secrets &amp; Tokens</h1>
+    <p class="lead">Every secret has a specific scope. None are committed to Git.</p>
+
+    <div class="info-box">
+      <strong>KeePassXC</strong> at <code>~/.config/auto-app-deploy/secrets.kdbx</code> is the local master store.
+      Scripts read tokens from it at runtime. GitHub repository secrets carry tokens into CI.
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Token</th>
+          <th>Used by</th>
+          <th>Permissions required</th>
+          <th>Stored in</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>GITOPS_TOKEN</code></td>
+          <td>App repo GitHub Actions; <code>create-new-app.sh</code></td>
+          <td>Contents: Write on <code>auto-app-deploy</code></td>
+          <td>KeePassXC + GitHub repo secret per app</td>
+        </tr>
+        <tr>
+          <td><code>GITHUB_TOKEN</code></td>
+          <td>App repo GitHub Actions (built-in)</td>
+          <td><code>packages:write</code> to push to GHCR</td>
+          <td>Automatically injected by GitHub Actions</td>
+        </tr>
+        <tr>
+          <td>GHCR pull token</td>
+          <td>Kubernetes cluster (<code>ghcr-pull</code> imagePullSecret)</td>
+          <td><code>read:packages</code> (classic PAT)</td>
+          <td>Kubernetes secret via <code>setup-ghcr-pull-secret.sh</code></td>
+        </tr>
+        <tr>
+          <td><code>TF_API_TOKEN</code></td>
+          <td>Cloudflare Access GitHub Actions</td>
+          <td>HCP Terraform workspace access</td>
+          <td>GitHub Actions secret on <code>auto-app-deploy</code></td>
+        </tr>
+        <tr>
+          <td><code>CLOUDFLARE_API_TOKEN</code></td>
+          <td>HCP Terraform Cloud</td>
+          <td>Cloudflare Access: edit</td>
+          <td>HCP Terraform workspace variable</td>
+        </tr>
+        <tr>
+          <td>Google OAuth client</td>
+          <td>HCP Terraform Cloud (optional)</td>
+          <td>Google Cloud OAuth client credentials</td>
+          <td>HCP Terraform workspace variable</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════ APPS -->
+  <section id="apps" class="section">
+    <h1>Registered Apps</h1>
+    <p class="lead">Apps currently tracked in <code>apps/*.yaml</code>.</p>
+    <div class="app-grid" id="app-grid">
+      <p style="color:var(--muted); font-size:13px;">Loading…</p>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════ ONBOARD -->
+  <section id="onboard" class="section">
+    <h1>Onboarding a New App</h1>
+    <p class="lead">Two paths: fully automated via script, or step-by-step manually.</p>
+
+    <div class="section-title">Prerequisites</div>
+    <div class="info-box">
+      <strong>Tools needed:</strong> <code>gh</code> (GitHub CLI), <code>keepassxc-cli</code>, <code>git</code>, <code>docker</code>.<br/>
+      <strong>One-time setup:</strong> run <code>scripts/setup-gitops-token-store.sh</code> to store the GitOps PAT in KeePassXC.
+    </div>
+
+    <div class="section-title">Automated (recommended)</div>
+    <div class="flow">
+
+      <div class="flow-step">
+        <div class="flow-connector"><div class="flow-dot"></div><div class="flow-line"></div></div>
+        <div class="flow-card" onclick="toggleFlow(this)">
+          <div class="flow-card-header">
+            <div class="flow-card-title">Run <code>create-new-app.sh</code></div>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="flow-card-body">
+            The script prompts for local app path, GitHub owner/repo, app name, hostname, port, and
+            whether Cloudflare Access should be enabled. It then creates/prepares the GitHub repo,
+            writes <code>app.yaml</code>, copies the release workflow, sets issue labels, and stores
+            <code>GITOPS_TOKEN</code> as a GitHub secret.
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-connector"><div class="flow-dot"></div><div class="flow-line"></div></div>
+        <div class="flow-card" onclick="toggleFlow(this)">
+          <div class="flow-card-header">
+            <div class="flow-card-title">Add a <code>Dockerfile</code> to your app</div>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="flow-card-body">
+            The container must run an HTTP server on a known port and the image must build for
+            <code>linux/arm64</code>. Test locally:<br/>
+            <pre><code>docker build -t my-app:local .
+docker run --rm -p 8080:&lt;port&gt; my-app:local
+curl -I http://localhost:8080</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-connector"><div class="flow-dot"></div></div>
+        <div class="flow-card" onclick="toggleFlow(this)">
+          <div class="flow-card-header">
+            <div class="flow-card-title">Push a version tag</div>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="flow-card-body">
+            <pre><code>git tag v0.1.0
+git push origin v0.1.0</code></pre>
+            GitHub Actions builds the image, updates the GitOps repo, ArgoCD syncs the cluster,
+            and Terraform updates Cloudflare Access — all automatically.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section-title" style="margin-top:32px">Manual steps at a glance</div>
+    <table>
+      <thead><tr><th>#</th><th>Step</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Containerise</td><td>Add <code>Dockerfile</code>, test ARM64 build locally</td></tr>
+        <tr><td>2</td><td>app.yaml</td><td>Create in app repo with image, port, hostname, access flag</td></tr>
+        <tr><td>3</td><td>Release workflow</td><td>Copy from <code>app-template/.github/workflows/release.yaml</code></td></tr>
+        <tr><td>4</td><td>GitHub secret</td><td><code>gh secret set GITOPS_TOKEN --repo Branchenprimus/&lt;app&gt;</code></td></tr>
+        <tr><td>5</td><td>Push</td><td>Commit and push to GitHub</td></tr>
+        <tr><td>6</td><td>Release</td><td><code>git tag v0.1.0 &amp;&amp; git push origin v0.1.0</code></td></tr>
+        <tr><td>7</td><td>Verify</td><td>Check Actions, ArgoCD, <code>kubectl get pods -n apps</code>, public URL</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<script>
+  function showSection(id) {
+    const section = document.getElementById(id);
+    const link = document.querySelector(`nav a[data-section="${id}"]`);
+    if (!section || !link) return;
+
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+    section.classList.add('active');
+    link.classList.add('active');
+    if (id === 'apps') loadApps();
+  }
+
+  document.querySelectorAll('nav a[data-section]').forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      const id = link.dataset.section;
+      showSection(id);
+      history.replaceState(null, '', `#${id}`);
+    });
+  });
+
+  window.addEventListener('hashchange', () => {
+    showSection(location.hash.slice(1) || 'overview');
+  });
+
+  showSection(location.hash.slice(1) || 'overview');
+
+  function toggleCard(el) {
+    el.classList.toggle('open');
+  }
+
+  function toggleFlow(el) {
+    el.classList.toggle('open');
+  }
+
+  /* ── Static app data derived from apps/*.yaml ── */
+  const apps = [
+    { name: 'flashcards',           host: 'flashcards.darwin-labs.org',            port: 80,   access: true,  persistence: false },
+    { name: 'gh-issue-pipeline',    host: 'gh-issue-pipeline.darwin-labs.org',     port: 8080, access: true,  persistence: false },
+    { name: 'simple-notes',         host: 'simple-notes.darwin-labs.org',          port: 80,   access: true,  persistence: false },
+    { name: 'training-planner',     host: 'training-planner.darwin-labs.org',      port: 80,   access: true,  persistence: false },
+    { name: 'triathlon-race-planner', host: 'triathlon-race-planner.darwin-labs.org', port: 80, access: true, persistence: false },
+    { name: 'usc-crawler',          host: 'usc-crawler.darwin-labs.org',           port: 80,   access: true,  persistence: false },
+  ];
+
+  function loadApps() {
+    const grid = document.getElementById('app-grid');
+    grid.innerHTML = apps.map(a => `
+      <div class="app-card">
+        <div class="app-name">${a.name}</div>
+        <div class="app-host">${a.host}</div>
+        <div class="app-detail">Port: ${a.port} &nbsp;|&nbsp; Access: <span class="badge ${a.access ? 'badge-on' : 'badge-off'}">${a.access ? 'Protected' : 'Public'}</span></div>
+        ${a.persistence ? '<div class="app-detail" style="margin-top:4px"><span class="badge badge-off">Persistent storage</span></div>' : ''}
+      </div>
+    `).join('');
+  }
+</script>
+</body>
+</html>
