@@ -4,7 +4,7 @@
 #
 #   ./scripts/create-release.sh                    # pick a repo interactively
 #   ./scripts/create-release.sh --project=<repo>   # target one repo, no prompts
-#   ./scripts/create-release.sh --auto             # accept all default prompts
+#   ./scripts/create-release.sh --auto             # accept defaults for current repo
 # Tags vX.Y.Z, pushes it, watches the GitHub Actions build, then reports the
 # ArgoCD / Kubernetes rollout. Worktree must be clean. Requires: git, gh.
 # =============================================================================
@@ -23,7 +23,9 @@ Usage: create-release.sh [--auto] [--project=<repo_name|owner/repo|path>]
 Create and push the next release tag, then watch the GitHub Actions pipeline.
 
 Options:
-  --auto                 Use default values for prompts.
+  --auto                 Use default values for prompts after the project is known.
+                         With no --project, only releases the current app repo;
+                         it never chooses the first discovered repo.
   --project=<project>    Release the matching project without prompting.
                          Matches a local path, repo directory name, GitHub
                          owner/repo, or GitHub repo name under /home/jan/projects.
@@ -188,11 +190,47 @@ resolve_project_repo_path() {
   printf '%s' "${matches[0]}"
 }
 
+current_repo_path_for_auto() {
+  local repo_path
+  local gitops_path
+
+  repo_path="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  [[ -n "$repo_path" ]] || return 1
+  repo_path="$(realpath "$repo_path")"
+  gitops_path="$(realpath "$DEFAULT_GITOPS_REPO_PATH" 2>/dev/null || printf '%s' "$DEFAULT_GITOPS_REPO_PATH")"
+
+  [[ -d "$repo_path/.git" ]] || return 1
+  github_repo_from_origin "$repo_path" >/dev/null || return 1
+
+  if [[ "$repo_path" == "$gitops_path" ]]; then
+    printf 'Error: --auto without --project was run from the GitOps repo. Refusing to release auto-app-deploy implicitly. Use --project=<app> or run from the app repository.\n' >&2
+    return 2
+  fi
+
+  printf '%s' "$repo_path"
+}
+
 select_repo_path() {
   local repos=()
   local repo_path
   local choice
   local index
+  local auto_status
+
+  if [[ "$AUTO_MODE" == "true" ]]; then
+    set +e
+    repo_path="$(current_repo_path_for_auto)"
+    auto_status="$?"
+    set -e
+
+    if [[ "$auto_status" -eq 0 ]]; then
+      printf '%s' "$repo_path"
+      return
+    fi
+    [[ "$auto_status" -eq 2 ]] && exit 1
+
+    die "--auto without --project cannot choose a repository safely from here. Run from the app repo or pass --project=<repo_name|owner/repo|path>."
+  fi
 
   while IFS= read -r repo_path; do
     [[ -n "$repo_path" ]] || continue
