@@ -1,0 +1,12 @@
+name: hermes-dashboard
+
+route:
+  host: hermes.darwin-labs.org
+  path: /
+
+access:
+  enabled: true
+  name: Hermes Dashboard
+  policy_name: Hermes Dashboard Google login
+  app_launcher_visible: true
+  session_duration: 12h

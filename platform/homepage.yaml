@@ -62,6 +62,11 @@ data:
             siteMonitor: https://homepage.darwin-labs.org
             description: Server start page and service index
             icon: homepage.png
+        - Hermes Dashboard:
+            href: https://hermes.darwin-labs.org
+            siteMonitor: https://hermes.darwin-labs.org/api/status
+            description: Hermes Agent web UI and management console
+            icon: https://cdn.simpleicons.org/brainly/7c3aed
     - Deployment:
         - GitOps Repository:
             href: https://github.com/Branchenprimus/auto-app-deploy
