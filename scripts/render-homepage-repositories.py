@@ -30,7 +30,6 @@ HOMEPAGE_MANIFEST = ROOT / "platform" / "homepage.yaml"
 BEGIN = "    # BEGIN GENERATED REPOSITORIES"
 END = "    # END GENERATED REPOSITORIES"
 DISPLAY_NAMES = {
-    "clickclack": "ClickClack",
 }
 
 

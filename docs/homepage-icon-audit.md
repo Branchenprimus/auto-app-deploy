@@ -8,7 +8,6 @@ Audited from inside the k3s host with `Host: <app>.darwin-labs.org`, bypassing C
 
 | App | Browser/tab icon status | Homepage manifest status |
 | --- | --- | --- |
-| clickclack | OK: HTML declares `/favicon.svg`, served as `image/svg+xml` | Uses mirrored browser icon `/icons/clickclack-favicon.svg` |
 | training-planner | OK: HTML declares `/favicon.svg`, served as `image/svg+xml` | Uses mirrored browser icon `/icons/training-planner-favicon.svg` |
 | triathlon-race-planner | OK: HTML declares `/favicon.svg`, served as `image/svg+xml` | Uses mirrored browser icon `/icons/triathlon-race-planner-favicon.svg` |
 | flashcards | Missing: no `<link rel="icon">`; `/favicon.ico` and `/favicon.svg` return 404 | Temporary fallback `/icons/flashcards.svg` |
@@ -16,7 +15,6 @@ Audited from inside the k3s host with `Host: <app>.darwin-labs.org`, bypassing C
 | gh-issue-pipeline | Missing/not browser UI: `/` returns JSON 404; no favicon route | Temporary fallback `/icons/github.svg` |
 | usc-crawler | Broken: HTML declares `/favicon.svg`, but `/favicon.svg` returns 404 | Temporary fallback `/icons/usc-crawler.svg` |
 
-Note: the protected apps sit behind Cloudflare Access. Direct public favicon URLs such as `https://clickclack.darwin-labs.org/favicon.svg` return a Cloudflare Access login redirect to unauthenticated image requests. For apps with working browser favicons, the favicon SVG was copied into the Homepage `homepage-icons` ConfigMap and referenced as `/icons/*-favicon.svg`. This keeps the displayed image derived from the browser tab icon while remaining reliably loadable by Homepage.
 
 ## User-in-the-loop tasks
 
@@ -151,7 +149,6 @@ Run this after releasing any app favicon fix:
 ```bash
 python3 - <<'PY'
 import http.client, re
-apps = ['clickclack','flashcards','gh-issue-pipeline','simple-notes','training-planner','triathlon-race-planner','usc-crawler']
 for app in apps:
     host=f'{app}.darwin-labs.org'
     conn=http.client.HTTPConnection('127.0.0.1',80,timeout=10)
