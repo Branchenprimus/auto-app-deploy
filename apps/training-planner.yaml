@@ -12,7 +12,9 @@ route:
   path: /
 homepage:
   description: Strava-connected cycling, running and swimming tracker
-  icon: /icons/training-planner.svg
+  # Derived from the app's browser tab icon at /favicon.svg and mirrored into
+  # Homepage so Cloudflare Access does not block image loading.
+  icon: /icons/training-planner-favicon.svg
 access:
   enabled: true
 resources:

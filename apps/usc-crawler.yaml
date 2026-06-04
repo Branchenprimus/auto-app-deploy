@@ -10,6 +10,12 @@ container:
 route:
   host: usc-crawler.darwin-labs.org
   path: /
+homepage:
+  description: Urban Sports Club crawler and automation app
+  # Temporary Homepage fallback: the app HTML advertises /favicon.svg,
+  # but the deployed container currently returns 404 for that asset.
+  # See docs/homepage-icon-audit.md for the source-app follow-up.
+  icon: /icons/usc-crawler.svg
 access:
   enabled: true
 resources:

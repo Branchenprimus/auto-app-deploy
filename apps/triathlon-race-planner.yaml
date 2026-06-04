@@ -13,7 +13,9 @@ route:
   path: /
 homepage:
   description: Race planning app
-  icon: /icons/triathlon-race-planner.svg
+  # Derived from the app's browser tab icon at /favicon.svg and mirrored into
+  # Homepage so Cloudflare Access does not block image loading.
+  icon: /icons/triathlon-race-planner-favicon.svg
 
 access:
   enabled: true
