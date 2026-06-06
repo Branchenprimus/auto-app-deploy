@@ -10,6 +10,8 @@ container:
 route:
   host: alarm-app.darwin-labs.org
   path: /
+homepage:
+  icon: /icons/alarm.svg
 access:
   enabled: true
 resources:
