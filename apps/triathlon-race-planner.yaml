@@ -2,7 +2,7 @@ name: triathlon-race-planner
 
 image:
   repository: ghcr.io/branchenprimus/triathlon-race-planner
-  tag: v1.0.2
+  tag: v2.0.0
   pullPolicy: IfNotPresent
 
 container:
