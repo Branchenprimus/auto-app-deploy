@@ -3,17 +3,13 @@ image:
   repository: ghcr.io/branchenprimus/usc-crawler
   pullSecrets:
     - name: ghcr-pull
-  tag: v3.0.0
+  tag: v4.0.0
   pullPolicy: IfNotPresent
 container:
   port: 8080
 route:
   host: usc-crawler.darwin-labs.org
   path: /
-homepage:
-  description: Urban Sports Club crawler and automation app
-  # Official Urban Sports Club Unicon from brand assets.
-  icon: /icons/urban-sports-club-unicon-white.png
 access:
   enabled: true
 resources:
