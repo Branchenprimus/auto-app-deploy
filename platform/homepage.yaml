@@ -44,12 +44,28 @@ data:
         columns: 3
   bookmarks.yaml: |
     - Developer:
-        - GitHub:
+        - GitHub Org:
             - abbr: GH
               href: https://github.com/Branchenprimus
         - Auto App Deploy:
             - abbr: GIT
               href: https://github.com/Branchenprimus/auto-app-deploy
+        - GitHub Actions:
+            - abbr: CI
+              href: https://github.com/Branchenprimus/auto-app-deploy/actions
+        - GHCR Packages:
+            - abbr: IMG
+              href: https://github.com/orgs/Branchenprimus/packages
+    - Operations:
+        - ArgoCD:
+            - abbr: CD
+              href: https://argocd.darwin-labs.org
+        - Grafana Explore:
+            - abbr: LOG
+              href: https://grafana.darwin-labs.org/explore
+        - Cloudflare Access:
+            - abbr: CF
+              href: https://dash.cloudflare.com/79adc4436321f0f308e68f5529f190bc/one/overview/dashboard?duration=24h
   services.yaml: |
     - Platform:
         - ArgoCD:
@@ -60,8 +76,10 @@ data:
         - Homepage:
             href: https://homepage.darwin-labs.org
             siteMonitor: https://homepage.darwin-labs.org
-            description: Server start page and service index
+            description: Server start page, service index and live cluster overview
             icon: homepage.png
+            namespace: apps
+            app: homepage
         - Hermes Dashboard:
             href: https://hermes.darwin-labs.org
             siteMonitor: https://hermes.darwin-labs.org/api/status
@@ -136,6 +154,25 @@ data:
             description: Access policies and tunnel status
             icon: cloudflare.png
   widgets.yaml: |
+    - datetime:
+        text_size: xl
+        locale: de-DE
+        format:
+          dateStyle: medium
+          timeStyle: short
+          hourCycle: h23
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: k3s cluster
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
     - search:
         provider: duckduckgo
         target: _blank
@@ -181,6 +218,57 @@ data:
     [class*="services"] h2 {
       letter-spacing: 0.08em;
       text-shadow: 0 0 24px rgba(139, 92, 246, 0.5);
+    }
+
+    #information-widgets,
+    [class*="information"],
+    [class*="widget"] {
+      color: rgba(248, 250, 252, 0.96) !important;
+    }
+
+    #information-widgets > div,
+    [class*="information-widget"],
+    [class*="widget-container"] {
+      border-color: rgba(196, 181, 253, 0.16) !important;
+      background: rgba(15, 23, 42, 0.54) !important;
+      backdrop-filter: blur(12px);
+    }
+
+    .bookmark,
+    a.bookmark,
+    [class*="bookmark"] {
+      border: 1px solid rgba(125, 211, 252, 0.14) !important;
+      background: rgba(15, 23, 42, 0.44) !important;
+      border-radius: 14px !important;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        font-size: 14px;
+      }
+
+      .service-card,
+      a.service-card,
+      [class*="service-card"] {
+        transform: none !important;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.24) !important;
+      }
+
+      .service-card:hover,
+      a.service-card:hover,
+      [class*="service-card"]:hover {
+        transform: none !important;
+      }
+
+      #information-widgets,
+      [class*="information"] {
+        gap: 0.5rem !important;
+      }
+
+      .services-group,
+      [class*="services-group"] {
+        margin-bottom: 1rem !important;
+      }
     }
   custom.js: ""
 ---
