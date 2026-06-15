@@ -229,6 +229,10 @@ detect_persistence_mount() {
     mount="$(awk 'toupper($1)=="VOLUME" { val=$2; gsub(/["\\[\\]]/, "", val); if (val ~ /^\//) { print val; exit } }' "$app_path/Dockerfile" 2>/dev/null || true)"
     [[ -n "$mount" ]] && printf '%s' "$mount"
   fi
+
+  # Absence of persistence is a valid result. Keep this function safe under
+  # `set -e` when called from command substitution.
+  return 0
 }
 
 build_env_yaml() {
