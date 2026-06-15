@@ -68,8 +68,8 @@ resource "cloudflare_zero_trust_access_application" "app" {
 
   policies = [{
     name       = try(each.value.access.policy_name, "${each.value.name} Google login")
-    decision   = "allow"
-    precedence = 1
+    decision   = try(each.value.access.policy_decision, "allow")
+    precedence = try(each.value.access.precedence, 1)
 
     include = [{
       everyone = {}

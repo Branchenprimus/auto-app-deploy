@@ -1,0 +1,13 @@
+name: codex-dashboard-api-usage-bypass
+route:
+  host: codex-dashboard-api.darwin-labs.org
+  path: /usage
+access:
+  enabled: true
+  name: Codex Dashboard API Widget Usage Bypass
+  policy_name: Codex Dashboard API /usage widget bypass
+  policy_decision: bypass
+  precedence: 1
+  app_launcher_visible: false
+  session_duration: 24h
+namespace: apps
