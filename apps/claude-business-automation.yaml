@@ -1,0 +1,25 @@
+name: claude-business-automation
+image:
+  repository: ghcr.io/branchenprimus/claude-business-automation
+  tag: v1.0.0
+  pullPolicy: IfNotPresent
+container:
+  port: 80
+route:
+  host: claude-business-automation.darwin-labs.org
+  path: /
+access:
+  enabled: false
+resources:
+  requests:
+    cpu: 25m
+    memory: 32Mi
+  limits:
+    cpu: 250m
+    memory: 128Mi
+env: []
+homepage:
+  name: Claude Workflow Setup
+  description: KI-Workflow Setup-Service für lokale Unternehmen
+  icon: https://claude-business-automation.darwin-labs.org/favicon.svg
+namespace: apps
