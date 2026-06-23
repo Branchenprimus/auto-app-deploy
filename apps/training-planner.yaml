@@ -17,6 +17,9 @@ homepage:
   icon: /icons/training-planner-favicon.svg
 access:
   enabled: true
+  # Existing Cloudflare Access app was created outside this Terraform state.
+  # Keep protection live, but skip Terraform management to avoid duplicate 409s.
+  managed: false
 resources:
   requests:
     cpu: 25m

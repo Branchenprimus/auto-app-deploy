@@ -19,7 +19,7 @@ locals {
   protected_apps = {
     for key, app in local.apps :
     key => app
-    if try(app.access.enabled, var.default_access_enabled)
+    if try(app.access.enabled, var.default_access_enabled) && try(app.access.managed, true)
   }
 
   app_domains = {
