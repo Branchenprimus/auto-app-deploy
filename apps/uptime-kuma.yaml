@@ -1,0 +1,31 @@
+name: uptime-kuma
+image:
+  repository: docker.io/louislam/uptime-kuma
+  tag: "1"
+  pullPolicy: IfNotPresent
+container:
+  port: 3001
+route:
+  host: uptime-kuma.darwin-labs.org
+  path: /
+homepage:
+  group: Platform
+  name: Uptime Kuma
+  description: Service uptime and status monitoring
+  icon: https://uptime-kuma.darwin-labs.org/icon.svg
+access:
+  enabled: true
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+env: []
+persistence:
+  enabled: true
+  mountPath: /app/data
+  size: 2Gi
+  storageClassName: local-path
+namespace: apps
