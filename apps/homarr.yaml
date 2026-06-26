@@ -1,0 +1,38 @@
+name: homarr
+image:
+  repository: ghcr.io/homarr-labs/homarr
+  tag: latest
+  pullPolicy: Always
+container:
+  port: 7575
+route:
+  host: homarr.darwin-labs.org
+  path: /
+homepage:
+  group: Platform
+  name: Homarr
+  description: Alternative self-hosted service dashboard
+  icon: https://homarr.darwin-labs.org/favicon.ico
+access:
+  enabled: true
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+env:
+  - name: SECRET_ENCRYPTION_KEY
+    valueFrom:
+      secretKeyRef:
+        name: homarr
+        key: SECRET_ENCRYPTION_KEY
+  - name: DB_URL
+    value: /appdata/db/db.sqlite
+persistence:
+  enabled: true
+  mountPath: /appdata
+  size: 2Gi
+  storageClassName: local-path
+namespace: apps
