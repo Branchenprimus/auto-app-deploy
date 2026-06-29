@@ -36,6 +36,8 @@ env:
         key: NEXTCLOUD_ADMIN_PASSWORD
   - name: NEXTCLOUD_TRUSTED_DOMAINS
     value: nextcloud.darwin-labs.org
+  - name: SQLITE_DATABASE
+    value: nextcloud
   - name: OVERWRITEHOST
     value: nextcloud.darwin-labs.org
   - name: OVERWRITEPROTOCOL
