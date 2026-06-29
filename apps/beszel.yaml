@@ -40,8 +40,6 @@ env:
     value: Cf-Access-Authenticated-User-Email
   - name: USER_CREATION
     value: "true"
-  - name: DISABLE_PASSWORD_AUTH
-    value: "true"
 persistence:
   enabled: true
   mountPath: /beszel_data
