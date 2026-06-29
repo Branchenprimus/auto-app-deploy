@@ -1,0 +1,34 @@
+name: beszel
+image:
+  repository: docker.io/henrygd/beszel
+  tag: latest
+  pullPolicy: Always
+container:
+  port: 8090
+route:
+  host: beszel.darwin-labs.org
+  path: /
+homepage:
+  group: Platform
+  name: Beszel
+  description: Lightweight server monitoring
+  icon: https://beszel.darwin-labs.org/favicon.svg
+access:
+  enabled: true
+  name: Beszel
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+env:
+  - name: APP_URL
+    value: https://beszel.darwin-labs.org
+persistence:
+  enabled: true
+  mountPath: /beszel_data
+  size: 2Gi
+  storageClassName: local-path
+namespace: apps
