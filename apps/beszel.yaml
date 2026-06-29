@@ -26,6 +26,16 @@ resources:
 env:
   - name: APP_URL
     value: https://beszel.darwin-labs.org
+  - name: USER_EMAIL
+    valueFrom:
+      secretKeyRef:
+        name: beszel
+        key: USER_EMAIL
+  - name: USER_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: beszel
+        key: USER_PASSWORD
 persistence:
   enabled: true
   mountPath: /beszel_data
