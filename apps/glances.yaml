@@ -25,5 +25,9 @@ resources:
     memory: 768Mi
 env:
   - name: GLANCES_OPT
-    value: "-w"
+    value: "-w -C /glances/conf/glances.conf"
+extraSecretMounts:
+  - name: glances-config
+    secretName: glances-config
+    mountPath: /glances/conf
 namespace: apps
