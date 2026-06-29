@@ -36,6 +36,11 @@ env:
       secretKeyRef:
         name: beszel
         key: USER_PASSWORD
+  - name: AUTO_LOGIN
+    valueFrom:
+      secretKeyRef:
+        name: beszel
+        key: USER_EMAIL
 persistence:
   enabled: true
   mountPath: /beszel_data
