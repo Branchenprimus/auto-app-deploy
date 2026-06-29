@@ -1,0 +1,52 @@
+name: nextcloud
+image:
+  repository: docker.io/library/nextcloud
+  tag: "31-apache"
+  pullPolicy: IfNotPresent
+container:
+  port: 80
+route:
+  host: nextcloud.darwin-labs.org
+  path: /
+homepage:
+  group: Apps
+  name: Nextcloud
+  description: Lightweight file transfer service
+  icon: https://nextcloud.darwin-labs.org/favicon.ico
+access:
+  # Keep public sharing/WebDAV/mobile clients usable; Nextcloud handles its own login.
+  enabled: false
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+env:
+  - name: NEXTCLOUD_ADMIN_USER
+    valueFrom:
+      secretKeyRef:
+        name: nextcloud
+        key: NEXTCLOUD_ADMIN_USER
+  - name: NEXTCLOUD_ADMIN_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: nextcloud
+        key: NEXTCLOUD_ADMIN_PASSWORD
+  - name: NEXTCLOUD_TRUSTED_DOMAINS
+    value: nextcloud.darwin-labs.org
+  - name: OVERWRITEHOST
+    value: nextcloud.darwin-labs.org
+  - name: OVERWRITEPROTOCOL
+    value: https
+  - name: PHP_UPLOAD_LIMIT
+    value: 2G
+  - name: PHP_MEMORY_LIMIT
+    value: 512M
+persistence:
+  enabled: true
+  mountPath: /var/www/html
+  size: 20Gi
+  storageClassName: local-path
+namespace: apps
