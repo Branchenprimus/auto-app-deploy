@@ -14,8 +14,8 @@ homepage:
   description: Lightweight file transfer service
   icon: https://nextcloud.darwin-labs.org/favicon.ico
 access:
-  # Keep public sharing/WebDAV/mobile clients usable; Nextcloud handles its own login.
-  enabled: false
+  enabled: true
+  name: Nextcloud
 resources:
   requests:
     cpu: 100m
