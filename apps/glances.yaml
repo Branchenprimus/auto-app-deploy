@@ -1,0 +1,29 @@
+name: glances
+image:
+  repository: docker.io/nicolargo/glances
+  tag: latest-full
+  pullPolicy: Always
+container:
+  port: 61208
+route:
+  host: glances.darwin-labs.org
+  path: /
+homepage:
+  group: Monitoring
+  name: Glances
+  description: Lightweight system monitoring UI
+  icon: https://glances.darwin-labs.org/favicon.ico
+access:
+  enabled: true
+  name: Glances
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 750m
+    memory: 768Mi
+env:
+  - name: GLANCES_OPT
+    value: "-w"
+namespace: apps
