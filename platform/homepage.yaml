@@ -85,6 +85,11 @@ data:
             siteMonitor: https://hermes.darwin-labs.org/api/status
             description: Hermes Agent web UI and management console
             icon: /icons/hermes-agent.jpg
+        - Jupyter Lab:
+            href: https://jupyter.darwin-labs.org
+            siteMonitor: https://jupyter.darwin-labs.org/lab
+            description: Protected notebooks workspace on the Pi
+            icon: https://cdn.simpleicons.org/jupyter/F37626
     - Deployment:
         - GitOps Repository:
             href: https://github.com/Branchenprimus/auto-app-deploy

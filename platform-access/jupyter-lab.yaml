@@ -1,0 +1,12 @@
+name: jupyter-lab
+
+route:
+  host: jupyter.darwin-labs.org
+  path: /
+
+access:
+  enabled: true
+  name: Jupyter Lab
+  policy_name: Jupyter Lab Google login
+  app_launcher_visible: true
+  session_duration: 12h
