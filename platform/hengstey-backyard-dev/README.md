@@ -41,3 +41,8 @@ stateful service starts with a 4 GiB local-path PVC on the Pi SD card. Backups
 are disabled until configured. Email is recorded in the database but not sent.
 The dev database and photo bucket are independent from production. PVCs and
 runtime Secrets must be preserved during application maintenance.
+
+MinIO is built from pinned upstream source by HBP's `Build MinIO` workflow.
+Wait for that workflow to succeed before changing `minio.image`. The bucket
+initialization job uses boto3 in the application image. Both jobs run as
+Argo CD PostSync hooks after PostgreSQL and MinIO become healthy.

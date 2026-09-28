@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/branchenprimus/hengstey-backyard-platform
-  tag: "28b1077707752916032508142f18381b26dca604"
+  tag: "bc6328b305b51556a7ef200595c529e35e2c845a"
 imagePullSecrets:
   - name: ghcr-pull
 replicaCount: 1
@@ -22,6 +22,7 @@ postgres:
     requests: {cpu: 50m, memory: 128Mi}
     limits: {cpu: 500m, memory: 384Mi}
 minio:
+  image: ghcr.io/branchenprimus/hengstey-backyard-minio:bc6328b305b51556a7ef200595c529e35e2c845a
   storageClassName: local-path
   storageSize: 4Gi
   resources:
