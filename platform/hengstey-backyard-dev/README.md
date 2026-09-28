@@ -4,13 +4,18 @@ URL: https://hengstey-backyard-dev.darwin-labs.org
 
 The dedicated Argo CD Application renders the HBP Helm chart and reads values
 from this repository. The existing single-container ApplicationSet is unchanged.
-Cloudflare Access uses the platform Google login policy; Cloudflare Tunnel
+An existing Cloudflare Access application protects this hostname. It is excluded
+from this Terraform state (`access.managed: false`) to avoid duplicate ownership.
+Cloudflare Tunnel
 terminates external TLS and sends HTTP to Traefik.
 
 ## Bootstrap
 
 Provision namespace `hengstey-dev`, runtime Secret `hengstey-backyard-secrets`
 and registry Secret `ghcr-pull` once using an authenticated cluster connection.
+The existing apps registry credential cannot read HBP; the dev pull secret
+was provisioned from the local authenticated GitHub account. Rotate it when
+that credential changes.
 Generate fresh dev-only POSTGRES_PASSWORD, SECRET_KEY, S3_ACCESS_KEY_ID and
 S3_SECRET_ACCESS_KEY. DATABASE_URL must match PostgreSQL credentials and point
 to `hengstey-backyard-postgres:5432/hengstey`; S3_ENDPOINT_URL must be
