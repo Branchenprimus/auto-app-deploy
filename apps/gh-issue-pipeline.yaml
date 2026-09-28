@@ -1,4 +1,5 @@
 name: gh-issue-pipeline
+replicaCount: 0
 image:
   repository: ghcr.io/branchenprimus/gh-issue-pipeline
   pullSecrets:
