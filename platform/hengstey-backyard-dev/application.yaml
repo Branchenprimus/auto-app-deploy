@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: https://github.com/Branchenprimus/hengstey-backyard-platform.git
+    - repoURL: git@github.com:Branchenprimus/hengstey-backyard-platform.git
       targetRevision: 00e2b4d4420c1c69bdecb0d3c3a4abe56535cd8e
       path: deploy/helm/hengstey-backyard
       helm:
@@ -16,6 +16,9 @@ spec:
     - repoURL: https://github.com/Branchenprimus/auto-app-deploy
       targetRevision: main
       ref: values
+      path: platform/hengstey-backyard-dev
+      directory:
+        include: application.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: hengstey-dev

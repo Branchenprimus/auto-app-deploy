@@ -18,8 +18,8 @@ to `hengstey-backyard-postgres:5432/hengstey`; S3_ENDPOINT_URL must be
 `hengstey-backyard-private`. Leave BREVO_API_KEY empty. Never commit plaintext
 credentials. The Pi currently has no Sealed Secrets controller.
 
-Apply `application.yaml` once to register the application with Argo CD. This
-registration is outside the existing ApplicationSet. Argo CD deploys all app
+Register a read-only GitHub deploy key for the private HBP repository in Argo CD.
+Apply `application.yaml` once to register the application with Argo CD. It then tracks its own registration from Git, outside the existing ApplicationSet. Argo CD deploys all app
 resources; do not apply rendered workload manifests manually.
 
 ## Releases and operations
@@ -28,7 +28,7 @@ resources; do not apply rendered workload manifests manually.
 2. Wait for the multi-architecture container build to succeed.
 3. Pin `image.tag` in `values.yaml` to the built commit and push this repository.
 4. Argo CD automatically reconciles values. If the Helm chart changes, update
-   its pinned revision in `application.yaml` and reapply that registration.
+   its pinned revision in `application.yaml`; Argo CD reconciles it from Git.
 5. Verify Synced/Healthy, migration and bucket initialization jobs, and ingress.
 
 One app replica, PostgreSQL and MinIO each have a 384 MiB memory limit. Each
