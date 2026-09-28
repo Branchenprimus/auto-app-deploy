@@ -1,0 +1,32 @@
+image:
+  repository: ghcr.io/branchenprimus/hengstey-backyard-platform
+  tag: "28b1077707752916032508142f18381b26dca604"
+imagePullSecrets:
+  - name: ghcr-pull
+replicaCount: 1
+app:
+  baseUrl: https://hengstey-backyard-dev.darwin-labs.org
+  eventCapacity: 100
+  waitlistOfferHours: 72
+ingress:
+  className: traefik
+  host: hengstey-backyard-dev.darwin-labs.org
+  tlsEnabled: false
+resources:
+  requests: {cpu: 50m, memory: 128Mi}
+  limits: {cpu: 500m, memory: 384Mi}
+postgres:
+  storageClassName: local-path
+  storageSize: 4Gi
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 384Mi}
+minio:
+  storageClassName: local-path
+  storageSize: 4Gi
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 384Mi}
+jobs:
+  backup:
+    enabled: false

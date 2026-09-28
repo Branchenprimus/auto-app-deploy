@@ -1,0 +1,9 @@
+name: hengstey-backyard-dev
+route:
+  host: hengstey-backyard-dev.darwin-labs.org
+  path: /
+access:
+  enabled: true
+  name: Hengstey Backyard Dev
+  app_launcher_visible: true
+  session_duration: 24h
