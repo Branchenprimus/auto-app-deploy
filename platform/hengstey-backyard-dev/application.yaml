@@ -18,7 +18,7 @@ spec:
       ref: values
       path: platform/hengstey-backyard-dev
       directory:
-        include: application.yaml
+        include: '{application.yaml,adminer.yaml}'
   destination:
     server: https://kubernetes.default.svc
     namespace: hengstey-dev

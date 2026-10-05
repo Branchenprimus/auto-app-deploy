@@ -1,0 +1,114 @@
+# Dev-only SQL editor. No Ingress, NodePort or stored database credentials.
+# Access through an authenticated SSH tunnel; PostgreSQL login is still required.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hengstey-backyard-adminer
+  namespace: hengstey-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: hengstey-backyard-adminer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: hengstey-backyard-adminer
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10000
+        runAsGroup: 10000
+        fsGroup: 10000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: adminer
+          image: adminer:6.1.1-standalone
+          # No startup plugins/design changes; keep the application filesystem immutable.
+          command: [php, -S, "0.0.0.0:8080", -t, /var/www/html]
+          env:
+            - name: ADMINER_DEFAULT_SERVER
+              value: hengstey-backyard-postgres
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          volumeMounts:
+            - name: sessions
+              mountPath: /tmp
+      volumes:
+        - name: sessions
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hengstey-backyard-adminer
+  namespace: hengstey-dev
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: hengstey-backyard-adminer
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hengstey-backyard-adminer
+  namespace: hengstey-dev
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: hengstey-backyard-adminer
+  policyTypes: [Ingress, Egress]
+  # Deny pod-to-pod access; SSH forwards from the cluster node, not an ingress proxy.
+  ingress: []
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: hengstey-backyard-postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
