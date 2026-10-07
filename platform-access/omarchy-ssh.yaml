@@ -1,0 +1,14 @@
+name: omarchy-ssh
+
+route:
+  host: ssh-omarchy.darwin-labs.org
+  path: /
+
+access:
+  enabled: true
+  name: Omarchy SSH
+  policy_name: Omarchy SSH Google login
+  app_launcher_visible: true
+  session_duration: 24h
+  allowed_idp_ids:
+    - da76e7ac-9d32-493e-a49d-8b989c8e7579
