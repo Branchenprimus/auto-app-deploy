@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/branchenprimus/hengstey-backyard-platform
-  tag: "be11e1a25acd1ca541012f559437967d43f411b8"
+  tag: "43edb92f9eb90c1d88abbae58c10a420ff15a1a2"
 imagePullSecrets:
   - name: ghcr-pull
 replicaCount: 1
