@@ -2,8 +2,8 @@ name: flatswipe
 image:
   repository: ghcr.io/branchenprimus/flatswipe
   pullSecrets:
-    - name: ghcr-pull
-  tag: v1.0.0
+    - name: flatswipe-registry
+  tag: v2.0.0
   pullPolicy: IfNotPresent
 container:
   port: 8080
