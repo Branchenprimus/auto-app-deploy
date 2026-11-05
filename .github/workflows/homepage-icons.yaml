@@ -1,0 +1,39 @@
+name: Homepage icon regression checks
+
+on:
+  push:
+    paths:
+      - 'apps/**'
+      - 'platform/homepage.yaml'
+      - 'platform/homepage-icons/**'
+      - 'chart/single-container-webapp/**'
+      - 'scripts/*homepage*'
+      - '.github/workflows/homepage-icons.yaml'
+  pull_request:
+    paths:
+      - 'apps/**'
+      - 'platform/homepage*'
+      - 'platform/homepage-icons/**'
+      - 'chart/single-container-webapp/**'
+      - 'scripts/*homepage*'
+      - '.github/workflows/homepage-icons.yaml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: azure/setup-helm@v4.3.1
+        with:
+          version: v3.17.3
+      - run: pip install PyYAML==6.0.3
+      - name: Verify every tile has a local icon
+        run: python -m unittest discover -s scripts -p 'test_homepage_icons.py' -v
+      - name: Verify generated assets are reproducible
+        run: |
+          python scripts/render-homepage-icons.py
+          git diff --exit-code -- platform/homepage.yaml chart/single-container-webapp/files/homepage-icons.yaml

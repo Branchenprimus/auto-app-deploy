@@ -20,6 +20,8 @@ homepage:
   group: Apps
   name: ""
   description: ""
+  # Legacy metadata only. Tile icons are resolved from files/homepage-icons.yaml;
+  # remote icon URLs are never emitted, and unknown apps use a local fallback.
   icon: ""
   weight: ""
   # Override the homepage tile link. Defaults to https://<route.host><route.path>.

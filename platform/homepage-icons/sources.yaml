@@ -1,0 +1,139 @@
+apps:
+  alarm-app: alarm-app.png
+  beszel: beszel.png
+  claude-business-automation: claude-business-automation.png
+  codex-dashboard-api: codex-dashboard-api.png
+  flashcards: flashcards.png
+  flatswipe: flatswipe.png
+  gh-issue-pipeline: gh-issue-pipeline.png
+  glances: glances.png
+  homarr: homarr.png
+  nextcloud: nextcloud.png
+  simple-notes: simple-notes.png
+  training-planner: training-planner.png
+  triathlon-race-planner: triathlon-race-planner.png
+  uptime-kuma: uptime-kuma.png
+  usc-crawler: usc-crawler.png
+services:
+  ArgoCD: argocd.png
+  Cloudflare Zero Trust: cloudflare.png
+  Flashcards: github.png
+  GH Issue Pipeline: github.png
+  GHCR Packages: ghcr-docker.png
+  GitHub Actions: github-actions.png
+  GitOps Repository: github.png
+  Grafana: grafana.png
+  Hermes Dashboard: hermes-dashboard.png
+  Homepage: homepage.png
+  Issue Pipeline Repository: github.png
+  Jupyter Lab: jupyter-lab.png
+  Loki: loki.png
+  Simple Notes: github.png
+  Training Planner: github.png
+  Triathlon Race Planner: github.png
+  USC Crawler: github.png
+sources:
+  alarm-app.png:
+    origin: meaningful existing fallback (no advertised or standard favicon found)
+    sha256: 663e853e99385f6f01f6248539ae054d89b19f308619d23e19283b4f7e7105d3
+    source: repo:platform/homepage.yaml#homepage-icons/alarm.svg
+  app-default.png:
+    origin: local fallback for future apps
+    sha256: 37aa47e29a2b6025efbffec476f4377f64bf95354b46cc57261492c5526dec1c
+    source: generated neutral app grid
+  argocd.png:
+    origin: live app icon
+    sha256: 0ad87fbe3ed2c866db045a8be52cddb8b9c73d81f66f3f665a0e0473eb18f865
+    source: http://argocd.darwin-labs.org/assets/favicon/favicon-32x32.png
+  beszel.png:
+    origin: live app icon
+    sha256: ba9906fbd2f23f8bfc2dcb1c08ee37672220238b690a04180db619142a4cd54a
+    source: http://beszel.darwin-labs.org/static/icon.svg
+  claude-business-automation.png:
+    origin: live app icon
+    sha256: 42ab4540a046a4bc8c21e668e387889f880220fa963265b1d2762db92d46a826
+    source: http://claude-business-automation.darwin-labs.org/favicon.svg
+  cloudflare.png:
+    origin: known icon provider
+    sha256: 5deb9ce44851ec957d7e6e5e310185a9bac2788c4f032f45153747fa3fef44f8
+    source: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/cloudflare.svg
+  codex-dashboard-api.png:
+    origin: meaningful existing fallback
+    sha256: d4d10191ce888b7349c256d6168eed7a17d4825b1f449cd8cf366c52da25677a
+    source: repo:platform/homepage.yaml#homepage-icons/github.svg
+  flashcards.png:
+    origin: meaningful existing fallback (no advertised or standard favicon found)
+    sha256: f450e982f5c56fc47c7da960a3d361a7fdb1774e6956e683f829ec31a44204f5
+    source: repo:platform/homepage.yaml#homepage-icons/flashcards.svg
+  flatswipe.png:
+    origin: live app icon
+    sha256: fea8dcedf95821255e705910a3947cbd1cc779dbe8eeaa9d2859a30ed41e7d67
+    source: http://flatswipe.darwin-labs.org/static/favicon.svg
+  gh-issue-pipeline.png:
+    origin: meaningful existing fallback
+    sha256: d4d10191ce888b7349c256d6168eed7a17d4825b1f449cd8cf366c52da25677a
+    source: repo:platform/homepage.yaml#homepage-icons/github.svg
+  ghcr-docker.png:
+    origin: known icon provider
+    sha256: d11d0e5ee94030e2a713064810e908353f804db64c1bf57bd19c300df1d4ccc7
+    source: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/docker.svg
+  github-actions.png:
+    origin: known icon provider
+    sha256: 644f64b4f88b9f8e870096b6a85b9406f0c59870f97772c517513da46b79c16c
+    source: https://cdn.simpleicons.org/githubactions/2088FF
+  github.png:
+    origin: existing mirrored genuine brand icon
+    sha256: d4d10191ce888b7349c256d6168eed7a17d4825b1f449cd8cf366c52da25677a
+    source: repo:platform/homepage.yaml#homepage-icons/github.svg
+  glances.png:
+    origin: live app icon
+    sha256: 98ddac7709bdf2db556e133eeccafe37bf851352ce4d298119678b9f8b3db62e
+    source: http://glances.darwin-labs.org/static/favicon.ico
+  grafana.png:
+    origin: known icon provider
+    sha256: 796158ba85f7385d79d800f28497668866f4489f6a4a32c3ab288f0c278d2d33
+    source: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/grafana.svg
+  hermes-dashboard.png:
+    origin: live app icon
+    sha256: b1d8bd1dcb7ff592553d6968aa9593b6ca4c34680119a7ca844d22c0c3582b90
+    source: http://hermes.darwin-labs.org/favicon.ico
+  homarr.png:
+    origin: live app icon
+    sha256: 3f0afea2b60b40e8ddbd3c91f1c13a5a5ff326e7b66f7a5712f5bd725dbaa592
+    source: http://homarr.darwin-labs.org/logo/logo.png
+  homepage.png:
+    origin: live app icon
+    sha256: 0ef9c7b5519b7d81d567e6e206b7ddbcb2719bd16411fadc77ee5273bd2ff884
+    source: http://homepage.darwin-labs.org/favicon-32x32.png?v=4
+  jupyter-lab.png:
+    origin: live app icon
+    sha256: fe7bb2ddd8c9b28cd3e322cd70ed588a57a94574d4f75065956498f277670eb3
+    source: http://jupyter.darwin-labs.org/static/favicon.ico?v=50afa725b5de8b00030139d09b38620224d4e7dba47c07ef0e86d4643f30c9bfe6bb7e1a4a1c561aa32834480909a4b6fe7cd1e17f7159330b6b5914bf45a880
+  loki.png:
+    origin: known icon provider
+    sha256: 119b159e39b2bb8cd7c9b1e3a7918bed6bb09f9abddda8c47458868024dc7212
+    source: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/loki.svg
+  nextcloud.png:
+    origin: live app icon
+    sha256: 42bb7551db5934d3d92ce1875b887e4c8c01c19376193b238a46d8264fc641a1
+    source: https://nextcloud.darwin-labs.org/core/img/favicon.ico
+  simple-notes.png:
+    origin: live app icon
+    sha256: 80b16010f50fabe7353f4de7cc0dd5e99906f9ecb5539bb7ca40cc569fe54347
+    source: http://simple-notes.darwin-labs.org/favicon.svg
+  training-planner.png:
+    origin: live app icon
+    sha256: 343367319c9dd76640d6dea2c054b10e1a96a12f849200c23fbdb7dc42d58c0e
+    source: http://training-planner.darwin-labs.org/favicon.svg
+  triathlon-race-planner.png:
+    origin: live app icon
+    sha256: 353b76a4c55a2ac1fb9aed80075301b19bdbf332c3bd7d4fddc7d7aa54be9fe3
+    source: http://triathlon-race-planner.darwin-labs.org/favicon.svg
+  uptime-kuma.png:
+    origin: live app icon
+    sha256: b0b4d84c9ac8d2ec9241fa3541b73ff8c26c9f248cccd93498f8b03694067801
+    source: http://uptime-kuma.darwin-labs.org/icon.svg
+  usc-crawler.png:
+    origin: existing mirrored app icon
+    sha256: 29ecb0b9640c630ee6d921017f29b78647a91f0fec3e65b9afdfad5f908ef873
+    source: repo:platform/homepage.yaml#homepage-icons/urban-sports-club-unicon-white.png
