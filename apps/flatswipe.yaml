@@ -1,0 +1,41 @@
+name: flatswipe
+image:
+  repository: ghcr.io/branchenprimus/flatswipe
+  pullSecrets:
+    - name: ghcr-pull
+  tag: v1.0.0
+  pullPolicy: IfNotPresent
+container:
+  port: 8080
+route:
+  host: flatswipe.darwin-labs.org
+  path: /
+access:
+  enabled: true
+homepage:
+  name: FlatSwipe
+  description: Wohnungen entdecken, merken und aussortieren
+  icon: https://flatswipe.darwin-labs.org/static/favicon.svg
+resources:
+  requests:
+    cpu: 25m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+env:
+  - name: FLATSWIPE_ORIGIN
+    value: https://flatswipe.darwin-labs.org
+  - name: FLATSWIPE_DB
+    value: /data/flatswipe.sqlite
+  - name: IMPORT_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: flatswipe-secret
+        key: IMPORT_TOKEN
+persistence:
+  enabled: true
+  mountPath: /data
+  size: 1Gi
+  storageClassName: local-path
+namespace: apps
