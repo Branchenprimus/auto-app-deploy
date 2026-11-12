@@ -30,6 +30,9 @@ data:
       Apps:
         style: row
         columns: 3
+      Hengstey Backyard Ultra:
+        style: row
+        columns: 3
       Platform:
         style: row
         columns: 3
@@ -67,6 +70,47 @@ data:
             - abbr: CF
               href: https://dash.cloudflare.com/79adc4436321f0f308e68f5529f190bc/one/overview/dashboard?duration=24h
   services.yaml: |
+    - Hengstey Backyard Ultra:
+        - Website DEV:
+            href: https://hengstey-backyard-dev.darwin-labs.org
+            description: Entwicklungsumgebung · Anmeldung und Teilnehmerbereich
+            icon: /icons/app-default.png
+            namespace: hengstey-dev
+            app: hengstey-backyard
+        - Website PROD:
+            href: https://hengstey-backyard-ultra.darwin-labs.org
+            description: Produktionswebsite · bestehende Umgebung
+            icon: /icons/app-default.png
+        - Admin DEV:
+            href: https://hengstey-backyard-admin-dev.darwin-labs.org/admin
+            description: Teilnehmerverwaltung · eigene Domain mit Cloudflare Access
+            icon: /icons/app-default.png
+        - Admin PROD:
+            href: https://hengstey-backyard-ultra.darwin-labs.org/admin
+            description: Produktionsverwaltung · bisheriger Pfad, eigene Domain noch ausstehend
+            icon: /icons/app-default.png
+        - Adminer DEV:
+            href: http://127.0.0.1:18081
+            description: Private Datenbank-UI · zuerst dev-action-scripts/dev-db-ui.sh starten
+            icon: /icons/app-default.png
+            namespace: hengstey-dev
+            app: hengstey-backyard-adminer
+        - Deployment DEV:
+            href: https://argocd.darwin-labs.org/applications/argocd/hengstey-backyard-dev
+            description: Argo CD · Rollout und Ressourcen der Entwicklungsumgebung
+            icon: /icons/argocd.png
+        - Quellcode:
+            href: https://github.com/Branchenprimus/hengstey-backyard-platform
+            description: Anwendung, Dokumentation und lokale Werkzeuge
+            icon: /icons/github.png
+        - Container Builds:
+            href: https://github.com/Branchenprimus/hengstey-backyard-platform/actions
+            description: CI und Container-Builds
+            icon: /icons/github-actions.png
+        - GitOps DEV:
+            href: https://github.com/Branchenprimus/auto-app-deploy/tree/main/platform/hengstey-backyard-dev
+            description: Release-Version und Konfiguration der Entwicklungsumgebung
+            icon: /icons/github.png
     - Platform:
         - ArgoCD:
             href: https://argocd.darwin-labs.org
