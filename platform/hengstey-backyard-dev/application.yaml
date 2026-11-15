@@ -7,7 +7,7 @@ spec:
   project: default
   sources:
     - repoURL: git@github.com:Branchenprimus/hengstey-backyard-platform.git
-      targetRevision: e7e477ca3202f99083b735724f30c3c2284c3559
+      targetRevision: 0364cb7484ed8c198c7dcac3aa01f23befca7f29
       path: deploy/helm/hengstey-backyard
       helm:
         releaseName: hengstey-backyard
