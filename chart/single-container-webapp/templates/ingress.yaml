@@ -20,7 +20,7 @@ metadata:
     app (replicaCount: 0) refuses the connection and shows red. "external"
     hides Homepage's second, Kubernetes pod-status dot.
     */}}
-    gethomepage.dev/siteMonitor: {{ printf "http://%s.%s.svc.cluster.local%s" (include "single-container-webapp.name" .) .Values.namespace .Values.route.path | quote }}
+    gethomepage.dev/siteMonitor: {{ printf "http://%s.%s.svc.cluster.local%s" (include "single-container-webapp.name" .) .Values.namespace (.Values.homepage.monitorPath | default .Values.route.path) | quote }}
     gethomepage.dev/external: "true"
     {{- if .Values.homepage.weight }}
     gethomepage.dev/weight: {{ .Values.homepage.weight | quote }}

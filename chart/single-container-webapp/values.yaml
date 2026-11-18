@@ -28,6 +28,9 @@ homepage:
   # Set this when the app's landing path differs from the homepage target
   # (e.g. a marketing root at "/" but the app lives at "/app").
   href: ""
+  # Path of the in-cluster status check. Defaults to route.path. Set it when
+  # that path redirects to an absolute https:// URL, which Homepage cannot follow.
+  monitorPath: ""
 
 resources:
   requests:

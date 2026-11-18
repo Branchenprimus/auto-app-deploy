@@ -9,6 +9,8 @@ route:
   host: nextcloud.darwin-labs.org
   path: /
 homepage:
+  # "/" redirects to https://.../login; status.php answers the check directly.
+  monitorPath: /status.php
   group: Apps
   name: Nextcloud
   description: Lightweight file transfer service

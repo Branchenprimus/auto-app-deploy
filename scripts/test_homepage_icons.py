@@ -86,6 +86,10 @@ class HomepageIcons(unittest.TestCase):
         self.assertNotIn('gethomepage.dev/app', annotations)
         self.assertNotIn('gethomepage.dev/pod-selector', annotations)
 
+    def test_monitor_path_override(self):
+        annotations = self.render_ingress('--set', 'name=demo-app', '--set', 'namespace=apps', '--set', 'homepage.monitorPath=/status.php')['metadata']['annotations']
+        self.assertEqual(annotations['gethomepage.dev/siteMonitor'], 'http://demo-app.apps.svc.cluster.local/status.php')
+
     def test_stopped_app_keeps_its_tile(self):
         # replicaCount 0: the Service has no endpoints, the check fails, the dot is red.
         annotations = self.render_ingress('--set', 'name=stopped-app', '--set', 'replicaCount=0')['metadata']['annotations']
