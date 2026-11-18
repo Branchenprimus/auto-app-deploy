@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/branchenprimus/hengstey-backyard-platform
-  tag: "e8a843d73098c94ab5634ecdff88b11b13020f98"
+  tag: "85f9fc5864afa8c3a80dac9b1fe3d45a9ae55b13"
 imagePullSecrets:
   - name: ghcr-pull
 replicaCount: 1
@@ -10,6 +10,8 @@ app:
   adminBaseUrl: https://hengstey-backyard-admin-dev.darwin-labs.org
   eventCapacity: 100
   waitlistOfferHours: 72
+  senderEmail: noreply@darwin-labs.org
+  senderName: Hengstey Backyard Ultra
 ingress:
   className: traefik
   host: hengstey-backyard-dev.darwin-labs.org
