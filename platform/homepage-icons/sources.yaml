@@ -28,12 +28,9 @@ services:
   GitHub Actions: github-actions.png
   GitOps DEV: github.png
   GitOps Repository: github.png
-  Grafana: grafana.png
   Hermes Dashboard: hermes-dashboard.png
   Homepage: homepage.png
-  Issue Pipeline Repository: github.png
   Jupyter Lab: jupyter-lab.png
-  Loki: loki.png
   Quellcode: github.png
   Simple Notes: github.png
   Training Planner: github.png

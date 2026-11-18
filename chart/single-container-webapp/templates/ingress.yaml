@@ -5,7 +5,8 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     {{- include "single-container-webapp.labels" . | nindent 4 }}
-  {{- if .Values.homepage.enabled }}
+  {{- /* Stopped apps (replicaCount: 0) are unreachable, so they get no tile. */}}
+  {{- if and .Values.homepage.enabled (gt (int .Values.replicaCount) 0) }}
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: {{ default "Apps" .Values.homepage.group | quote }}

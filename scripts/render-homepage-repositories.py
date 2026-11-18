@@ -7,7 +7,8 @@
 #
 # Run with no args:   ./scripts/render-homepage-repositories.py
 # Rewrites the block between the "BEGIN/END GENERATED REPOSITORIES" markers in
-# platform/homepage.yaml, emitting one GitHub repo card per app. Commit the
+# platform/homepage.yaml, emitting one GitHub repo card per app. Cards carry no
+# siteMonitor: private repos answer 404 to anonymous checks. Commit the
 # result. Requires: python3 (PyYAML optional; falls back to a simple parser).
 # =============================================================================
 
@@ -117,7 +118,6 @@ def render_section(cards: list[dict[str, str]]) -> str:
             [
                 f"        - {card['title']}:",
                 f"            href: {card['url']}",
-                f"            siteMonitor: {card['url']}",
                 f"            description: Source repository for {card['slug']}",
                 "            icon: /icons/github.png",
             ]

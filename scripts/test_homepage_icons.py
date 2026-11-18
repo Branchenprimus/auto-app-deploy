@@ -58,6 +58,25 @@ class HomepageIcons(unittest.TestCase):
         for name, encoded in actual.items():
             self.assertEqual(base64.b64decode(encoded), (ASSETS/name).read_bytes())
 
+    def test_status_monitors_only_check_own_services(self):
+        # Anonymous checks of private GitHub repos or login-protected dashboards
+        # always fail and would show permanently red status dots.
+        docs = list(yaml.safe_load_all((ROOT/'platform/homepage.yaml').read_text()))
+        config = next(d for d in docs if d.get('kind') == 'ConfigMap' and d['metadata']['name'] == 'homepage')
+        for group in yaml.safe_load(config['data']['services.yaml']):
+            for services in group.values():
+                for service in services:
+                    for name, values in service.items():
+                        monitor = values.get('siteMonitor')
+                        if monitor:
+                            with self.subTest(service=name):
+                                self.assertRegex(monitor, r'^https://[a-z0-9-]+\.darwin-labs\.org(/|$)')
+
+    def test_stopped_app_has_no_tile(self):
+        output = subprocess.check_output(['helm', 'template', 'stopped-app', str(ROOT/'chart/single-container-webapp'), '--set', 'name=stopped-app', '--set', 'replicaCount=0'], text=True)
+        ingress = next(d for d in yaml.safe_load_all(output) if d and d['kind'] == 'Ingress')
+        self.assertNotIn('gethomepage.dev/enabled', ingress['metadata'].get('annotations') or {})
+
     def test_config_change_rolls_out_homepage(self):
         text = (ROOT/'platform/homepage.yaml').read_text()
         deployment = next(d for d in yaml.safe_load_all(text) if d and d.get('kind') == 'Deployment')
@@ -77,6 +96,8 @@ class HomepageIcons(unittest.TestCase):
             app = yaml.safe_load(path.read_text())
             output = subprocess.check_output(['helm', 'template', app['name'], str(ROOT/'chart/single-container-webapp'), '-f', str(path)], text=True)
             ingress = next(d for d in yaml.safe_load_all(output) if d and d['kind'] == 'Ingress')
+            if app.get('replicaCount', 1) == 0:
+                continue  # stopped apps get no tile, see test_stopped_app_has_no_tile
             with self.subTest(app=app['name']):
                 self.assertEqual(ingress['metadata']['annotations']['gethomepage.dev/icon'], registry.get(app['name'], '/icons/app-default.png'))
         output = subprocess.check_output(['helm', 'template', 'future-app', str(ROOT/'chart/single-container-webapp'), '--set', 'name=future-app', '--set', 'homepage.icon=https://external.example/favicon.ico'], text=True)

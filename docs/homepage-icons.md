@@ -44,6 +44,12 @@ Nextcloud publishes its real icon at `/core/img/favicon.ico`, not `/favicon.ico`
    config or icon change rolls out a fresh Homepage pod; no manual
    `kubectl apply` or restart is needed. CI fails when the checksum is stale.
 
+Status dots (`siteMonitor`) only check our own `*.darwin-labs.org` services.
+GitHub, GHCR and Cloudflare dashboard cards are plain links: private repos and
+login pages always fail anonymous checks. Apps with `replicaCount: 0` are
+stopped and get no tile. Regenerate repository cards with
+`python scripts/render-homepage-repositories.py`.
+
 Repository-card generation already emits `/icons/github.png`, including newly
 found repositories, and local-icon regeneration preserves those new cards.
 

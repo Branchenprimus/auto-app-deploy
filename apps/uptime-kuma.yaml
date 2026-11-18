@@ -9,7 +9,7 @@ route:
   host: uptime-kuma.darwin-labs.org
   path: /
 homepage:
-  group: Platform
+  group: Monitoring
   name: Uptime Kuma
   description: Service uptime and status monitoring
   icon: https://uptime-kuma.darwin-labs.org/icon.svg

@@ -64,14 +64,11 @@ data:
               href: https://github.com/Branchenprimus/auto-app-deploy/actions
         - GHCR Packages:
             - abbr: IMG
-              href: https://github.com/orgs/Branchenprimus/packages
+              href: https://github.com/Branchenprimus?tab=packages
     - Operations:
         - ArgoCD:
             - abbr: CD
               href: https://argocd.darwin-labs.org
-        - Grafana Explore:
-            - abbr: LOG
-              href: https://grafana.darwin-labs.org/explore
         - Cloudflare Access:
             - abbr: CF
               href: https://dash.cloudflare.com/79adc4436321f0f308e68f5529f190bc/one/overview/dashboard?duration=24h
@@ -145,69 +142,66 @@ data:
     - Deployment:
         - GitOps Repository:
             href: https://github.com/Branchenprimus/auto-app-deploy
-            siteMonitor: https://github.com/Branchenprimus/auto-app-deploy
             description: App manifests, Helm chart, platform config
-            icon: /icons/github.png
-        - Issue Pipeline Repository:
-            href: https://github.com/Branchenprimus/gh-issue-pipeline
-            siteMonitor: https://github.com/Branchenprimus/gh-issue-pipeline
-            description: GitHub issue automation service
             icon: /icons/github.png
         - GitHub Actions:
             href: https://github.com/Branchenprimus/auto-app-deploy/actions
-            siteMonitor: https://github.com/Branchenprimus/auto-app-deploy/actions
             description: Cloudflare Access and platform workflows
             icon: /icons/github-actions.png
         - GHCR Packages:
-            href: https://github.com/orgs/Branchenprimus/packages
-            siteMonitor: https://github.com/orgs/Branchenprimus/packages
+            href: https://github.com/Branchenprimus?tab=packages
             description: Container images
             icon: /icons/ghcr-docker.png
     # BEGIN GENERATED REPOSITORIES
     - Repositories:
+        - Alarm App:
+            href: https://github.com/branchenprimus/alarm-app
+            description: Source repository for alarm-app
+            icon: /icons/github.png
+        - Claude Workflow Setup:
+            href: https://github.com/branchenprimus/claude-business-automation
+            description: Source repository for claude-business-automation
+            icon: /icons/github.png
+        - Codex Dashboard Api:
+            href: https://github.com/branchenprimus/codex-dashboard-api
+            description: Source repository for codex-dashboard-api
+            icon: /icons/github.png
         - Flashcards:
             href: https://github.com/branchenprimus/flashcards
-            siteMonitor: https://github.com/branchenprimus/flashcards
             description: Source repository for flashcards
+            icon: /icons/github.png
+        - FlatSwipe:
+            href: https://github.com/branchenprimus/flatswipe
+            description: Source repository for flatswipe
             icon: /icons/github.png
         - GH Issue Pipeline:
             href: https://github.com/branchenprimus/gh-issue-pipeline
-            siteMonitor: https://github.com/branchenprimus/gh-issue-pipeline
             description: Source repository for gh-issue-pipeline
+            icon: /icons/github.png
+        - Homarr:
+            href: https://github.com/homarr-labs/homarr
+            description: Source repository for homarr
             icon: /icons/github.png
         - Simple Notes:
             href: https://github.com/branchenprimus/simple-notes
-            siteMonitor: https://github.com/branchenprimus/simple-notes
             description: Source repository for simple-notes
             icon: /icons/github.png
         - Training Planner:
             href: https://github.com/branchenprimus/training-planner
-            siteMonitor: https://github.com/branchenprimus/training-planner
             description: Source repository for training-planner
             icon: /icons/github.png
-        - Triathlon Race Planner:
+        - Race Planner:
             href: https://github.com/branchenprimus/triathlon-race-planner
-            siteMonitor: https://github.com/branchenprimus/triathlon-race-planner
             description: Source repository for triathlon-race-planner
             icon: /icons/github.png
         - USC Crawler:
             href: https://github.com/branchenprimus/usc-crawler
-            siteMonitor: https://github.com/branchenprimus/usc-crawler
             description: Source repository for usc-crawler
             icon: /icons/github.png
     # END GENERATED REPOSITORIES
     - Monitoring:
-        - Grafana:
-            href: https://grafana.darwin-labs.org
-            description: Planned metrics and log dashboard
-            icon: /icons/grafana.png
-        - Loki:
-            href: https://grafana.darwin-labs.org/explore
-            description: Planned log exploration
-            icon: /icons/loki.png
         - Cloudflare Zero Trust:
             href: https://dash.cloudflare.com/79adc4436321f0f308e68f5529f190bc/one/overview/dashboard?duration=24h
-            siteMonitor: https://dash.cloudflare.com/79adc4436321f0f308e68f5529f190bc/one/overview/dashboard?duration=24h
             description: Access policies and tunnel status
             icon: /icons/cloudflare.png
   widgets.yaml: |
@@ -429,7 +423,7 @@ spec:
   template:
     metadata:
       annotations:
-        homepage.darwin-labs.org/config-checksum: 5f70735d8150e89a91855f347719eb84fdd7014fc52c14d7b528537960fe1b61
+        homepage.darwin-labs.org/config-checksum: db645177969dba3f9e2207dcda9cff15e0d491a44570b8b55bc151953b6b58ca
       labels:
         app.kubernetes.io/name: homepage
     spec:

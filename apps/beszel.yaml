@@ -9,7 +9,7 @@ route:
   host: beszel.darwin-labs.org
   path: /
 homepage:
-  group: Platform
+  group: Monitoring
   name: Beszel
   description: Lightweight server monitoring
   icon: https://beszel.darwin-labs.org/favicon.svg
