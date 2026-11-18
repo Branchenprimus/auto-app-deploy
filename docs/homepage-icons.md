@@ -44,10 +44,14 @@ Nextcloud publishes its real icon at `/core/img/favicon.ico`, not `/favicon.ico`
    config or icon change rolls out a fresh Homepage pod; no manual
    `kubectl apply` or restart is needed. CI fails when the checksum is stale.
 
-Status dots (`siteMonitor`) only check our own `*.darwin-labs.org` services.
-GitHub, GHCR and Cloudflare dashboard cards are plain links: private repos and
-login pages always fail anonymous checks. Apps with `replicaCount: 0` are
-stopped and get no tile. Regenerate repository cards with
+Each tile shows at most one status dot. `siteMonitor` checks the app's
+in-cluster Service (`http://<name>.<namespace>.svc.cluster.local/`), not the
+public URL, because Cloudflare Access answers that even when the app is down.
+Chart apps set `gethomepage.dev/external: "true"` to hide Homepage's second,
+Kubernetes pod-status dot. Stopped apps (`replicaCount: 0`) keep their tile;
+the check is refused and the dot turns red. GitHub, GHCR and Cloudflare cards
+are plain links without a dot. Adminer accepts no in-cluster traffic
+(NetworkPolicy), so its tile uses the Kubernetes pod status instead. Regenerate repository cards with
 `python scripts/render-homepage-repositories.py`.
 
 Repository-card generation already emits `/icons/github.png`, including newly

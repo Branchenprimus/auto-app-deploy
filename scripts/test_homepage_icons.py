@@ -58,24 +58,39 @@ class HomepageIcons(unittest.TestCase):
         for name, encoded in actual.items():
             self.assertEqual(base64.b64decode(encoded), (ASSETS/name).read_bytes())
 
-    def test_status_monitors_only_check_own_services(self):
-        # Anonymous checks of private GitHub repos or login-protected dashboards
-        # always fail and would show permanently red status dots.
+    def test_every_tile_has_at_most_one_meaningful_status_dot(self):
+        # Public URLs behind Cloudflare Access answer even when the app is down,
+        # and private GitHub repos always fail anonymous checks: monitor the
+        # in-cluster Service instead. A Kubernetes pod-status dot (namespace/app)
+        # next to a siteMonitor would show a second dot.
+        internal = r'^http://[a-z0-9-]+\.[a-z0-9-]+\.svc\.cluster\.local(:\d+)?/'
         docs = list(yaml.safe_load_all((ROOT/'platform/homepage.yaml').read_text()))
         config = next(d for d in docs if d.get('kind') == 'ConfigMap' and d['metadata']['name'] == 'homepage')
         for group in yaml.safe_load(config['data']['services.yaml']):
             for services in group.values():
                 for service in services:
                     for name, values in service.items():
-                        monitor = values.get('siteMonitor')
-                        if monitor:
-                            with self.subTest(service=name):
-                                self.assertRegex(monitor, r'^https://[a-z0-9-]+\.darwin-labs\.org(/|$)')
+                        with self.subTest(service=name):
+                            if values.get('siteMonitor'):
+                                self.assertRegex(values['siteMonitor'], internal)
+                                self.assertNotIn('app', values)
 
-    def test_stopped_app_has_no_tile(self):
-        output = subprocess.check_output(['helm', 'template', 'stopped-app', str(ROOT/'chart/single-container-webapp'), '--set', 'name=stopped-app', '--set', 'replicaCount=0'], text=True)
-        ingress = next(d for d in yaml.safe_load_all(output) if d and d['kind'] == 'Ingress')
-        self.assertNotIn('gethomepage.dev/enabled', ingress['metadata'].get('annotations') or {})
+    def render_ingress(self, *args):
+        output = subprocess.check_output(['helm', 'template', 'x', str(ROOT/'chart/single-container-webapp'), *args], text=True)
+        return next(d for d in yaml.safe_load_all(output) if d and d['kind'] == 'Ingress')
+
+    def test_app_tiles_show_one_in_cluster_status_dot(self):
+        annotations = self.render_ingress('--set', 'name=demo-app', '--set', 'namespace=apps')['metadata']['annotations']
+        self.assertEqual(annotations['gethomepage.dev/siteMonitor'], 'http://demo-app.apps.svc.cluster.local/')
+        self.assertEqual(annotations['gethomepage.dev/external'], 'true')
+        self.assertNotIn('gethomepage.dev/app', annotations)
+        self.assertNotIn('gethomepage.dev/pod-selector', annotations)
+
+    def test_stopped_app_keeps_its_tile(self):
+        # replicaCount 0: the Service has no endpoints, the check fails, the dot is red.
+        annotations = self.render_ingress('--set', 'name=stopped-app', '--set', 'replicaCount=0')['metadata']['annotations']
+        self.assertEqual(annotations['gethomepage.dev/enabled'], 'true')
+        self.assertIn('gethomepage.dev/siteMonitor', annotations)
 
     def test_config_change_rolls_out_homepage(self):
         text = (ROOT/'platform/homepage.yaml').read_text()
@@ -96,8 +111,6 @@ class HomepageIcons(unittest.TestCase):
             app = yaml.safe_load(path.read_text())
             output = subprocess.check_output(['helm', 'template', app['name'], str(ROOT/'chart/single-container-webapp'), '-f', str(path)], text=True)
             ingress = next(d for d in yaml.safe_load_all(output) if d and d['kind'] == 'Ingress')
-            if app.get('replicaCount', 1) == 0:
-                continue  # stopped apps get no tile, see test_stopped_app_has_no_tile
             with self.subTest(app=app['name']):
                 self.assertEqual(ingress['metadata']['annotations']['gethomepage.dev/icon'], registry.get(app['name'], '/icons/app-default.png'))
         output = subprocess.check_output(['helm', 'template', 'future-app', str(ROOT/'chart/single-container-webapp'), '--set', 'name=future-app', '--set', 'homepage.icon=https://external.example/favicon.ico'], text=True)

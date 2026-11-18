@@ -5,8 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     {{- include "single-container-webapp.labels" . | nindent 4 }}
-  {{- /* Stopped apps (replicaCount: 0) are unreachable, so they get no tile. */}}
-  {{- if and .Values.homepage.enabled (gt (int .Values.replicaCount) 0) }}
+  {{- if .Values.homepage.enabled }}
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: {{ default "Apps" .Values.homepage.group | quote }}
@@ -15,9 +14,14 @@ metadata:
     {{- $iconRegistry := .Files.Get "files/homepage-icons.yaml" | fromYaml }}
     gethomepage.dev/icon: {{ default "/icons/app-default.png" (get $iconRegistry .Values.name) | quote }}
     gethomepage.dev/href: {{ .Values.homepage.href | default (printf "https://%s%s" .Values.route.host .Values.route.path) | quote }}
-    gethomepage.dev/siteMonitor: {{ printf "https://%s%s" .Values.route.host .Values.route.path | quote }}
-    gethomepage.dev/app: {{ include "single-container-webapp.name" . | quote }}
-    gethomepage.dev/pod-selector: {{ printf "app.kubernetes.io/name=%s" (include "single-container-webapp.name" .) | quote }}
+    {{- /*
+    One status dot per tile: check the app's in-cluster Service, not the public
+    URL (Cloudflare Access answers that even when the app is down). A stopped
+    app (replicaCount: 0) refuses the connection and shows red. "external"
+    hides Homepage's second, Kubernetes pod-status dot.
+    */}}
+    gethomepage.dev/siteMonitor: {{ printf "http://%s.%s.svc.cluster.local%s" (include "single-container-webapp.name" .) .Values.namespace .Values.route.path | quote }}
+    gethomepage.dev/external: "true"
     {{- if .Values.homepage.weight }}
     gethomepage.dev/weight: {{ .Values.homepage.weight | quote }}
     {{- end }}

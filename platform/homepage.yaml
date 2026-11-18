@@ -85,10 +85,9 @@ data:
     - HBU · Entwicklung:
         - Website DEV:
             href: https://hengstey-backyard-dev.darwin-labs.org
+            siteMonitor: http://hengstey-backyard.hengstey-dev.svc.cluster.local:8000/healthz
             description: Entwicklungsumgebung · Anmeldung und Teilnehmerbereich
             icon: /icons/hbu.png
-            namespace: hengstey-dev
-            app: hengstey-backyard
         - Admin DEV:
             href: https://hengstey-backyard-admin-dev.darwin-labs.org/admin
             description: Teilnehmerverwaltung · eigene Domain mit Cloudflare Access
@@ -119,24 +118,22 @@ data:
     - Platform:
         - ArgoCD:
             href: https://argocd.darwin-labs.org
-            siteMonitor: https://argocd.darwin-labs.org
+            siteMonitor: http://argocd-server.argocd.svc.cluster.local/healthz
             description: GitOps deployment control plane
             icon: /icons/argocd.png
         - Homepage:
             href: https://homepage.darwin-labs.org
-            siteMonitor: https://homepage.darwin-labs.org
+            siteMonitor: http://homepage.apps.svc.cluster.local/api/healthcheck
             description: Server start page, service index and live cluster overview
             icon: /icons/homepage.png
-            namespace: apps
-            app: homepage
         - Hermes Dashboard:
             href: https://hermes.darwin-labs.org
-            siteMonitor: https://hermes.darwin-labs.org/api/status
+            siteMonitor: http://hermes-dashboard.apps.svc.cluster.local/
             description: Hermes Agent web UI and management console
             icon: /icons/hermes-dashboard.png
         - Jupyter Lab:
             href: https://jupyter.darwin-labs.org
-            siteMonitor: https://jupyter.darwin-labs.org/lab
+            siteMonitor: http://jupyter-lab.apps.svc.cluster.local/lab
             description: Protected notebooks workspace on the Pi
             icon: /icons/jupyter-lab.png
     - Deployment:
@@ -423,7 +420,7 @@ spec:
   template:
     metadata:
       annotations:
-        homepage.darwin-labs.org/config-checksum: db645177969dba3f9e2207dcda9cff15e0d491a44570b8b55bc151953b6b58ca
+        homepage.darwin-labs.org/config-checksum: d18c16dc1c7bb2adcad44ee71dbcd12a04071fe1856576869736adf7a7c9e4bb
       labels:
         app.kubernetes.io/name: homepage
     spec:
@@ -439,7 +436,8 @@ spec:
                 fieldRef:
                   fieldPath: status.podIP
             - name: HOMEPAGE_ALLOWED_HOSTS
-              value: "$(MY_POD_IP):3000,homepage.darwin-labs.org"
+              # homepage.apps.svc.cluster.local: in-cluster status check of the Homepage tile
+              value: "$(MY_POD_IP):3000,homepage.darwin-labs.org,homepage.apps.svc.cluster.local"
           ports:
             - name: http
               containerPort: 3000
