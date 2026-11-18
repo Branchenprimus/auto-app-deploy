@@ -441,6 +441,16 @@ path.write_text(text)
 PY
 }
 
+copy_renovate_config() {
+  # Dependency updates follow the shared policy in Branchenprimus/renovate-config.
+  if [[ -f "$APP_PATH/renovate.json" ]]; then
+    printf 'renovate.json already exists.\n'
+    return
+  fi
+  cp "$PLATFORM_DIR/app-template/renovate.json" "$APP_PATH/renovate.json"
+  printf 'Created Renovate config: %s\n' "$APP_PATH/renovate.json"
+}
+
 get_keepass_password() {
   local db_path="$1"
   local entry="$2"
@@ -726,12 +736,13 @@ main() {
   fi
 
   copy_release_workflow
+  copy_renovate_config
 
   if [[ ! -d "$APP_PATH/.git" ]]; then
     git -C "$APP_PATH" init
   fi
 
-  git -C "$APP_PATH" add app.yaml .gitignore .github/workflows/release.yaml
+  git -C "$APP_PATH" add app.yaml .gitignore .github/workflows/release.yaml renovate.json
   if [[ -f "$APP_PATH/Dockerfile" ]]; then
     git -C "$APP_PATH" add Dockerfile
   fi

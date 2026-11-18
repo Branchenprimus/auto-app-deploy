@@ -1,0 +1,25 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>Branchenprimus/renovate-config"
+  ],
+  "kubernetes": {
+    "managerFilePatterns": [
+      "/^platform/.+\\.ya?ml$/"
+    ]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Third-party container images in app manifests. Floating tags (latest, 1, 31-apache) are pinned to a digest so Renovate can propose digest and version updates; Argo CD deploys them after merge.",
+      "managerFilePatterns": [
+        "/^apps/[^/]+\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "image:\\n  repository: (?<depName>[^\\s\"]+)\\n  tag: \"?(?<currentValue>[^\"\\s@]+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?\"?\\n"
+      ],
+      "datasourceTemplate": "docker",
+      "autoReplaceStringTemplate": "image:\n  repository: {{{depName}}}\n  tag: \"{{{newValue}}}{{#if newDigest}}@{{{newDigest}}}{{/if}}\"\n"
+    }
+  ]
+}
