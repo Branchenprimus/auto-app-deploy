@@ -6,6 +6,8 @@ import subprocess
 import unittest
 import yaml
 
+from homepage_checksum import ANNOTATION, config_checksum
+
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / 'platform/homepage-icons'
 REGISTRY = ROOT / 'chart/single-container-webapp/files/homepage-icons.yaml'
@@ -55,6 +57,19 @@ class HomepageIcons(unittest.TestCase):
         self.assertLess(sum(len(base64.b64decode(v)) for v in actual.values()), 800_000)
         for name, encoded in actual.items():
             self.assertEqual(base64.b64decode(encoded), (ASSETS/name).read_bytes())
+
+    def test_config_change_rolls_out_homepage(self):
+        text = (ROOT/'platform/homepage.yaml').read_text()
+        deployment = next(d for d in yaml.safe_load_all(text) if d and d.get('kind') == 'Deployment')
+        annotations = deployment['spec']['template']['metadata'].get('annotations') or {}
+        self.assertEqual(annotations.get(ANNOTATION), config_checksum(text),
+                         'Run scripts/render-homepage-icons.py after changing Homepage config')
+
+    def test_argo_manages_homepage_with_server_side_apply(self):
+        app = yaml.safe_load((ROOT/'platform/homepage-application.yaml').read_text())
+        self.assertIn('ServerSideApply=true', app['spec']['syncPolicy']['syncOptions'])
+        self.assertEqual(app['spec']['source']['path'], 'platform')
+        self.assertIn('homepage.yaml', app['spec']['source']['directory']['include'])
 
     def test_chart_cannot_reintroduce_cross_origin_icons(self):
         registry = self.registry()

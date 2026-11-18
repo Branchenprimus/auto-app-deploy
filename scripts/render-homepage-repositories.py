@@ -139,6 +139,12 @@ def main() -> int:
     end += len(END)
     rendered = render_section(repository_cards())
     HOMEPAGE_MANIFEST.write_text(manifest[:start] + rendered + manifest[end:], encoding="utf-8")
+    if yaml:
+        from homepage_checksum import update_config_checksum
+
+        update_config_checksum(HOMEPAGE_MANIFEST)
+    else:
+        print("PyYAML missing: run scripts/render-homepage-icons.py to refresh the Homepage config checksum.", file=sys.stderr)
     return 0
 
 

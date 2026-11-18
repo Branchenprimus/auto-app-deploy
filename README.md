@@ -87,11 +87,19 @@ Cloudflare Access protection for `argocd.darwin-labs.org` is managed from
 `platform-access/argocd.yaml`, using the same Google login policy as the app
 hostnames.
 
-Expose Homepage with:
+Homepage is managed by the Argo CD application `homepage`, which syncs
+`platform/homepage.yaml` and its own definition from `main` using server-side
+apply (the icon ConfigMap is too large for client-side apply). Bootstrap it
+once with:
 
 ```bash
-kubectl apply -f platform/homepage.yaml
+kubectl apply -f platform/homepage-application.yaml
 ```
+
+After editing Homepage config or icons, run
+`python scripts/render-homepage-icons.py` so the Deployment's config checksum
+changes and Argo rolls out a pod that reads the new config. See
+`docs/homepage-icons.md`.
 
 Homepage is available at `https://homepage.darwin-labs.org` after Cloudflare
 Access applies `platform-access/homepage.yaml`. Homepage has no built-in auth,

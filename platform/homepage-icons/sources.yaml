@@ -15,12 +15,18 @@ apps:
   uptime-kuma: uptime-kuma.png
   usc-crawler: usc-crawler.png
 services:
+  Admin DEV: hbu.png
+  Admin PROD: hbu.png
+  Adminer DEV: adminer.png
   ArgoCD: argocd.png
   Cloudflare Zero Trust: cloudflare.png
+  Container Builds: github-actions.png
+  Deployment DEV: argocd.png
   Flashcards: github.png
   GH Issue Pipeline: github.png
   GHCR Packages: ghcr-docker.png
   GitHub Actions: github-actions.png
+  GitOps DEV: github.png
   GitOps Repository: github.png
   Grafana: grafana.png
   Hermes Dashboard: hermes-dashboard.png
@@ -28,11 +34,18 @@ services:
   Issue Pipeline Repository: github.png
   Jupyter Lab: jupyter-lab.png
   Loki: loki.png
+  Quellcode: github.png
   Simple Notes: github.png
   Training Planner: github.png
   Triathlon Race Planner: github.png
   USC Crawler: github.png
+  Website DEV: hbu.png
+  Website PROD: hbu.png
 sources:
+  adminer.png:
+    origin: live app icon (advertised apple-touch-icon SVG, rasterized)
+    sha256: f797be7449a8aad101ac0c3048d07cb910333a8396c247d50588f2f94a4dc19e
+    source: http://hengstey-backyard-adminer.hengstey-dev:8080/?file=logo.svg&version=6.1.1+43f4678f
   alarm-app.png:
     origin: meaningful existing fallback (no advertised or standard favicon found)
     sha256: 663e853e99385f6f01f6248539ae054d89b19f308619d23e19283b4f7e7105d3
@@ -93,6 +106,10 @@ sources:
     origin: known icon provider
     sha256: 796158ba85f7385d79d800f28497668866f4489f6a4a32c3ab288f0c278d2d33
     source: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/grafana.svg
+  hbu.png:
+    origin: live app icon (128 px frame of advertised rel=icon ICO)
+    sha256: 830ec874b76cde73c4f635a3e02acb5cbf13ab5f2a1e369e73abd3e4a2c6a1e0
+    source: http://hengstey-backyard-dev.darwin-labs.org/static/icons/hbu-v1.ico
   hermes-dashboard.png:
     origin: live app icon
     sha256: b1d8bd1dcb7ff592553d6968aa9593b6ca4c34680119a7ca844d22c0c3582b90

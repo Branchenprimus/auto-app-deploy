@@ -5,6 +5,7 @@ on:
     paths:
       - 'apps/**'
       - 'platform/homepage.yaml'
+      - 'platform/homepage-application.yaml'
       - 'platform/homepage-icons/**'
       - 'chart/single-container-webapp/**'
       - 'scripts/*homepage*'

@@ -37,15 +37,12 @@ Nextcloud publishes its real icon at `/core/img/favicon.ico`, not `/favicon.ico`
    python -m unittest discover -s scripts -p 'test_homepage_icons.py' -v
    ```
 
-5. Commit the assets and generated changes together. Argo applies the icon
-   annotations; apply the platform manifest and restart Homepage to refresh its
-   mounted ConfigMap/config and in-memory discovery:
-
-   ```sh
-   kubectl apply -f platform/homepage.yaml
-   kubectl -n apps rollout restart deployment/homepage
-   kubectl -n apps rollout status deployment/homepage
-   ```
+5. Commit the assets and generated changes together and push to `main`. The
+   Argo CD application `homepage` (`platform/homepage-application.yaml`) syncs
+   `platform/homepage.yaml` with server-side apply. The renderer stores a
+   checksum of both Homepage ConfigMaps on the Deployment pod template, so a
+   config or icon change rolls out a fresh Homepage pod; no manual
+   `kubectl apply` or restart is needed. CI fails when the checksum is stale.
 
 Repository-card generation already emits `/icons/github.png`, including newly
 found repositories, and local-icon regeneration preserves those new cards.

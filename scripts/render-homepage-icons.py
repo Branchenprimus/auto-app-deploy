@@ -8,6 +8,8 @@ from pathlib import Path
 import re
 import yaml
 
+from homepage_checksum import update_config_checksum
+
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / 'platform/homepage-icons'
 MANIFEST = ROOT / 'platform/homepage.yaml'
@@ -76,6 +78,7 @@ def main():
     if not updated_icons:
         raise ValueError('homepage-icons ConfigMap not found')
     MANIFEST.write_text('\n---\n'.join(sections).rstrip()+'\n')
+    update_config_checksum(MANIFEST)
     print('Rendered '+str(len(files))+' PNG assets, '+str(len(registry))+' app icons, '+str(len(updated_services))+' manual service icons.')
 
 

@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: homepage
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Branchenprimus/auto-app-deploy
+    targetRevision: main
+    path: platform
+    directory:
+      include: '{homepage.yaml,homepage-application.yaml}'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      # The icon ConfigMap exceeds the 256 KiB last-applied annotation limit
+      # of client-side apply.
+      - ServerSideApply=true
