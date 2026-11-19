@@ -1,0 +1,14 @@
+# Public email images only (logo, header texture). Brevo downloads images at send
+# time; the rest of the dev hostname stays behind the Google Access login.
+name: hengstey-backyard-dev-mail-assets-bypass
+route:
+  host: hengstey-backyard-dev.darwin-labs.org
+  path: /static/mail
+access:
+  enabled: true
+  name: Hengstey Backyard Dev Mail Assets Bypass
+  policy_name: Hengstey dev /static/mail public email images
+  policy_decision: bypass
+  precedence: 1
+  app_launcher_visible: false
+  session_duration: 24h
