@@ -1,27 +1,21 @@
 name: garmin-dashboard
-
 image:
   repository: ghcr.io/branchenprimus/garmin-dashboard
   pullSecrets:
     - name: ghcr-pull
-  tag: v0.1.1
+  tag: v0.1.2
   pullPolicy: IfNotPresent
-
 container:
   port: 8000
-
 route:
   host: garmin.darwin-labs.org
   path: /
-
 homepage:
   name: Laufanalyse
   description: Private Auswertung der Garmin-Trainingsdaten
-
 # Health data: keep behind Cloudflare Access.
 access:
   enabled: true
-
 resources:
   requests:
     cpu: 25m
@@ -29,7 +23,6 @@ resources:
   limits:
     cpu: 500m
     memory: 256Mi
-
 env:
   - name: DATA_SOURCE
     value: garmin
@@ -39,7 +32,6 @@ env:
     value: "900"
   - name: GARMIN_PERSONAL_API_KEY_FILE
     value: /secrets/garmin/api-key
-
 # Kubernetes Secret "garmin-dashboard" (namespace apps) with key "api-key";
 # created manually, never committed. 0444: the container runs as non-root.
 extraSecretMounts:
@@ -48,7 +40,6 @@ extraSecretMounts:
     mountPath: /secrets/garmin/api-key
     subPath: api-key
     defaultMode: 0444
-
 # SQLite on the PVC: keep a single replica.
 persistence:
   enabled: true
