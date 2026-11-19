@@ -3,7 +3,7 @@ image:
   repository: ghcr.io/branchenprimus/garmin-dashboard
   pullSecrets:
     - name: ghcr-pull
-  tag: v0.1.2
+  tag: v0.1.3
   pullPolicy: IfNotPresent
 container:
   port: 8000
